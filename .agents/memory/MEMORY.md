@@ -1,0 +1,12 @@
+- [Topping CRM auth flow & security](topping-crm-auth.md) — JWT `kind` claim separates auth vs reset tokens; requireAuth re-checks DB role/isActive; reset links use trusted server URL only
+- [Topping CRM booking routes](topping-crm-booking.md) — booking endpoints use query params (not path params) to avoid TS2308 collision in codegen
+- [Topping CRM API caching / 304 trap](topping-crm-api-caching.md) — ETag disabled + global no-store; "list/dropdown empty but API returns data" = check for 304 empty-body before touching frontend filters
+- [Topping CRM meeting conflicts](topping-crm-meeting-conflicts.md) — no double-booking; STRICT overlap bounds (adjacent OK); enforce on POST + PATCH (incl. attendee change & cancelled→active reactivation)
+- [Topping CRM notifications/goals/activity](topping-crm-notifications.md) — cron scheduler is in-process (needs Reserved VM in prod); don't push-force schema (google_id drift); activity endpoint must whitelist entityType (IDOR)
+- [Topping CRM compensation engine](topping-crm-compensation.md) — 3-tier gate blocking (hard→all $0; marketing→lead-gen+perf only; founder→strategic pending); new marketing payouts must use marketingBlocked
+- [Topping CRM RBAC & deal workflow](topping-crm-rbac-deal-workflow.md) — admin=CEO+Admin; deal ownership=salesRep|closer|creator; literal /deals routes before /deals/:id; api-server dev builds once (restart to apply); payroll calculate userId IDOR gate
+- [OpenAI reasoning-model empty content](openai-reasoning-models.md) — gpt-5-mini needs generous max_completion_tokens (≥2000); small budget yields empty content, never bare-catch it
+- [Topping CRM automation engine](topping-crm-automations.md) — registry runs record status by throwing; tasks.leadId is automation-only (dedup is intentionally specific); pipeline_stage_tasks is event-only
+- [wouter same-pattern route re-hydration](wouter-route-rehydration.md) — `/leads/:id`→`/leads/:id` keeps component mounted; hydrate per id (`hydratedFor===idParam`), not a one-shot boolean
+- [Topping CRM dashboard data boundaries](topping-crm-dashboard.md) — metric card values + recent leads are real; revenue/radar/node charts + trend % are sample (no time-series API)
+- [Topping CRM lead scoring & forms](topping-crm-lead-scoring.md) — AI lead score is auto-calculated (gpt-5-mini) on create + manual re-score, owner-only/managers blocked; form numeric payloads must use `=== "" ? undefined : Number()` so 0 isn't dropped

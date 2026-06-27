@@ -1,0 +1,1048 @@
+// ============================================================
+// SHAYAN MARKETING CRM — TOPPING COURIER
+// Lead Scoring | KPI | Calendar | Bonus | AI Report | Telegram
+// ============================================================
+
+const CFG_M = {
+  MANAGER_EMAIL:    "toppingcourier.ca@gmail.com",
+  SHAYAN_EMAIL:     "toppingcourier.ca@gmail.com",   // ← ایمیل شایان
+  TELEGRAM_TOKEN:   "8431648032:AAF_UXfjhK3bsWoAPMoSdf3ZwGGqPoLTMr0",            // ← توکن ربات تلگرام
+  TELEGRAM_CHAT_ID: "8431648032:AAF_UXfjhK3bsWoAPMoSdf3ZwGGqPoLTMr0",              // ← Chat ID شایان
+
+  SHEET_LEADS:   "Marketing Leads",
+  SHEET_KPI:     "KPI Dashboard",
+  SHEET_BONUS:   "Bonus Calculator",
+  SHEET_CALENDAR:"Activity Calendar",
+
+  ANTHROPIC_API_KEY: "YOUR_ANTHROPIC_KEY_HERE",       // ← کلید Anthropic (AI)
+
+  // ستون‌های Marketing Leads
+  COL_COMPANY:    0,   // A
+  COL_SOURCE:     1,   // B  (LinkedIn / Google Ads / SEO)
+  COL_CONTACT:    2,   // C
+  COL_EMAIL:      3,   // D
+  COL_PHONE:      4,   // E
+  COL_LINKEDIN:   5,   // F
+  COL_INDUSTRY:   6,   // G
+  COL_STATUS:     7,   // H
+  COL_SCORE:      8,   // I  (AI Score 0-100)
+  COL_SCORE_WHY:  9,   // J  (دلیل اسکور)
+  COL_LAST_ACT:   10,  // K
+  COL_NEXT_ACT:   11,  // L
+  COL_ACT_TYPE:   12,  // M  (Email/Call/Meeting/LinkedIn)
+  COL_MEETING:    13,  // N  (تاریخ جلسه)
+  COL_EMAIL_SENT: 14,  // O  (تعداد ایمیل ارسالی)
+  COL_EMAIL_RECD: 15,  // P  (تعداد ایمیل دریافتی)
+  COL_NOTES:      16,  // Q
+  COL_DEAL_VAL:   17,  // R  (ارزش احتمالی معامله)
+  COL_STAGE:      18,  // S  (مرحله قیف)
+  COL_NOTICE:     19,  // T
+
+  HEADER_ROWS: 1,
+  FOLLOWUP_DAYS: 3,
+
+  STATUSES: [
+    "New Lead",
+    "Contacted - Email",
+    "Contacted - Call",
+    "Contacted - LinkedIn",
+    "Meeting Scheduled",
+    "Meeting Done",
+    "Proposal Sent",
+    "Negotiating",
+    "Closed Won",
+    "Closed Lost",
+    "Not Interested",
+    "Nurturing"
+  ],
+
+  SOURCES: ["LinkedIn", "Google Ads", "SEO", "Referral", "Other"],
+
+  ACTIVITY_TYPES: ["Email", "Call", "Meeting", "LinkedIn Message", "Follow-up"],
+
+  // بونوس
+  BONUS_PER_DEAL:     200,   // دلار به ازای هر deal بسته‌شده
+  BONUS_PER_MEETING:  20,    // دلار به ازای هر جلسه
+  BONUS_PER_CALL:     5,     // دلار به ازای هر تماس
+  BONUS_SCORE_HIGH:   10,    // دلار اضافه اگر اسکور > 70
+
+  MONTH_TARGET_DEALS: 5,     // هدف ماهانه
+};
+
+// ============================================================
+// MENU
+// ============================================================
+function onOpen_Marketing() {
+  SpreadsheetApp.getUi()
+    .createMenu("🚀 Marketing CRM")
+    .addItem("🔧 Setup All Sheets", "setupMarketingSheets")
+    .addSeparator()
+    .addItem("🤖 AI Score Selected Lead", "aiScoreSelectedLead")
+    .addItem("🤖 AI Score All Leads", "aiScoreAllLeads")
+    .addSeparator()
+    .addItem("📅 Log Activity", "logActivity")
+    .addItem("📅 Schedule Meeting", "scheduleMeeting")
+    .addSeparator()
+    .addItem("📊 Update KPI Dashboard", "updateKPIDashboard")
+    .addItem("💰 Calculate Bonus", "calculateBonus")
+    .addSeparator()
+    .addItem("📢 Send AI Report → Telegram + Email", "sendAIReport")
+    .addItem("📧 Daily Summary", "dailyMarketingCheck")
+    .addSeparator()
+    .addItem("⚙️ Create Triggers", "createMarketingTriggers")
+    .addItem("🗑 Delete Triggers", "deleteMarketingTriggers")
+    .addToUi();
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function getLeadSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  return ss.getSheetByName(CFG_M.SHEET_LEADS);
+}
+
+function getKPISheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  return ss.getSheetByName(CFG_M.SHEET_KPI);
+}
+
+function getBonusSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  return ss.getSheetByName(CFG_M.SHEET_BONUS);
+}
+
+function getCalendarSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  return ss.getSheetByName(CFG_M.SHEET_CALENDAR);
+}
+
+function fmtDate(d) {
+  return Utilities.formatDate(d, Session.getScriptTimeZone(), "yyyy-MM-dd");
+}
+
+function fmtDateTime(d) {
+  return Utilities.formatDate(d, Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm");
+}
+
+function midnight(d) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+
+function getOrCreateSheet(name, color) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sh = ss.getSheetByName(name);
+  if (!sh) {
+    sh = ss.insertSheet(name);
+  }
+  if (color) sh.setTabColor(color);
+  return sh;
+}
+
+// ============================================================
+// SETUP ALL SHEETS
+// ============================================================
+function setupMarketingSheets() {
+  setupLeadsSheet();
+  setupKPISheet();
+  setupBonusSheet();
+  setupCalendarSheet();
+  SpreadsheetApp.getUi().alert("✅ همه Sheet‌ها ساخته شدند!\n\nMarketing Leads | KPI Dashboard | Bonus Calculator | Activity Calendar");
+}
+
+// ---- LEADS SHEET ----
+function setupLeadsSheet() {
+  const sh = getOrCreateSheet(CFG_M.SHEET_LEADS, "#4285f4");
+  sh.clearContents();
+  sh.clearFormats();
+
+  const headers = [
+    "Company", "Source", "Contact Name", "Email", "Phone", "LinkedIn URL",
+    "Industry", "Status", "AI Score (0-100)", "Score Reason",
+    "Last Activity", "Next Action Date", "Activity Type", "Meeting Date",
+    "Emails Sent", "Emails Received", "Notes", "Deal Value ($)", "Pipeline Stage", "Notice"
+  ];
+
+  sh.getRange(1, 1, 1, headers.length).setValues([headers]);
+  sh.getRange(1, 1, 1, headers.length)
+    .setBackground("#1a1a2e")
+    .setFontColor("#e2b96b")
+    .setFontWeight("bold")
+    .setFontSize(10);
+
+  const maxRows = 500;
+
+  // Dropdown: Status
+  const statusRule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(CFG_M.STATUSES, true).setAllowInvalid(false).build();
+  sh.getRange(2, CFG_M.COL_STATUS + 1, maxRows, 1).setDataValidation(statusRule);
+
+  // Dropdown: Source
+  const sourceRule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(CFG_M.SOURCES, true).setAllowInvalid(false).build();
+  sh.getRange(2, CFG_M.COL_SOURCE + 1, maxRows, 1).setDataValidation(sourceRule);
+
+  // Dropdown: Activity Type
+  const actRule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(CFG_M.ACTIVITY_TYPES, true).setAllowInvalid(false).build();
+  sh.getRange(2, CFG_M.COL_ACT_TYPE + 1, maxRows, 1).setDataValidation(actRule);
+
+  // Number format
+  sh.getRange(2, CFG_M.COL_LAST_ACT + 1, maxRows, 1).setNumberFormat("yyyy-mm-dd");
+  sh.getRange(2, CFG_M.COL_NEXT_ACT + 1, maxRows, 1).setNumberFormat("yyyy-mm-dd");
+  sh.getRange(2, CFG_M.COL_MEETING + 1, maxRows, 1).setNumberFormat("yyyy-mm-dd");
+  sh.getRange(2, CFG_M.COL_DEAL_VAL + 1, maxRows, 1).setNumberFormat("$#,##0");
+  sh.getRange(2, CFG_M.COL_EMAIL_SENT + 1, maxRows, 1).setNumberFormat("0");
+  sh.getRange(2, CFG_M.COL_EMAIL_RECD + 1, maxRows, 1).setNumberFormat("0");
+  sh.getRange(2, CFG_M.COL_SCORE + 1, maxRows, 1).setNumberFormat("0");
+
+  // Notice formula
+  sh.getRange(2, CFG_M.COL_NOTICE + 1).setFormula(
+    '=ARRAYFORMULA(IF(H2:H="","",IF((H2:H="Meeting Scheduled")+(H2:H="Proposal Sent"),IF(L2:L<TODAY(),"🔴 OVERDUE",IF(L2:L=TODAY(),"🟡 TODAY","⚪ OK")),"⚪ OK")))'
+  );
+
+  // Score color: conditional
+  const rules = [];
+
+  // Score >= 70 → green background
+  rules.push(SpreadsheetApp.newConditionalFormatRule()
+    .whenNumberGreaterThanOrEqualTo(70)
+    .setBackground("#c6f0c8").setFontColor("#137333")
+    .setRanges([sh.getRange(2, CFG_M.COL_SCORE + 1, maxRows, 1)]).build());
+
+  // Score 40-69 → yellow
+  rules.push(SpreadsheetApp.newConditionalFormatRule()
+    .whenNumberBetween(40, 69)
+    .setBackground("#fce8b2").setFontColor("#7a4100")
+    .setRanges([sh.getRange(2, CFG_M.COL_SCORE + 1, maxRows, 1)]).build());
+
+  // Score < 40 → red
+  rules.push(SpreadsheetApp.newConditionalFormatRule()
+    .whenNumberLessThan(40)
+    .setBackground("#fce8e6").setFontColor("#c5221f")
+    .setRanges([sh.getRange(2, CFG_M.COL_SCORE + 1, maxRows, 1)]).build());
+
+  // Status colors
+  rules.push(SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo("Closed Won")
+    .setBackground("#34a853").setFontColor("#ffffff")
+    .setRanges([sh.getRange(2, CFG_M.COL_STATUS + 1, maxRows, 1)]).build());
+
+  rules.push(SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo("Closed Lost")
+    .setBackground("#ea4335").setFontColor("#ffffff")
+    .setRanges([sh.getRange(2, CFG_M.COL_STATUS + 1, maxRows, 1)]).build());
+
+  rules.push(SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo("Meeting Scheduled")
+    .setBackground("#4285f4").setFontColor("#ffffff")
+    .setRanges([sh.getRange(2, CFG_M.COL_STATUS + 1, maxRows, 1)]).build());
+
+  rules.push(SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=$T2="🔴 OVERDUE"')
+    .setBackground("#fce8e6")
+    .setRanges([sh.getRange(2, 1, maxRows, headers.length)]).build());
+
+  rules.push(SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=$T2="🟡 TODAY"')
+    .setBackground("#fef9e7")
+    .setRanges([sh.getRange(2, 1, maxRows, headers.length)]).build());
+
+  sh.setConditionalFormatRules(rules);
+
+  // Column widths
+  sh.setColumnWidth(1, 160);   // Company
+  sh.setColumnWidth(2, 100);   // Source
+  sh.setColumnWidth(3, 140);   // Contact
+  sh.setColumnWidth(4, 180);   // Email
+  sh.setColumnWidth(9, 90);    // Score
+  sh.setColumnWidth(10, 250);  // Score Reason
+  sh.setColumnWidth(17, 200);  // Notes
+  sh.setColumnWidth(20, 120);  // Notice
+
+  sh.setFrozenRows(1);
+  SpreadsheetApp.flush();
+}
+
+// ---- KPI SHEET ----
+function setupKPISheet() {
+  const sh = getOrCreateSheet(CFG_M.SHEET_KPI, "#34a853");
+  sh.clearContents();
+  sh.clearFormats();
+
+  sh.setColumnWidth(1, 220);
+  sh.setColumnWidth(2, 150);
+  sh.setColumnWidth(3, 150);
+  sh.setColumnWidth(4, 150);
+
+  // Title
+  sh.getRange("A1:D1").merge()
+    .setValue("📊 SHAYAN MARKETING KPI DASHBOARD")
+    .setBackground("#1a1a2e").setFontColor("#e2b96b")
+    .setFontSize(14).setFontWeight("bold").setHorizontalAlignment("center");
+
+  sh.getRange("A2").setValue("Last Updated: (auto)");
+  sh.getRange("A2").setFontColor("#888888").setFontStyle("italic");
+
+  // Section: Lead Metrics
+  sh.getRange("A4:D4").merge().setValue("📥 LEAD METRICS")
+    .setBackground("#1f4e78").setFontColor("#ffffff").setFontWeight("bold");
+
+  const leadMetrics = [
+    ["Total Leads", "=COUNTA('Marketing Leads'!A2:A)", "", ""],
+    ["New Leads (this month)", "=COUNTIFS('Marketing Leads'!H2:H,\"New Lead\")", "", ""],
+    ["From LinkedIn", "=COUNTIF('Marketing Leads'!B2:B,\"LinkedIn\")", "", ""],
+    ["From Google Ads", "=COUNTIF('Marketing Leads'!B2:B,\"Google Ads\")", "", ""],
+    ["From SEO", "=COUNTIF('Marketing Leads'!B2:B,\"SEO\")", "", ""],
+    ["Avg AI Score", "=IFERROR(AVERAGE('Marketing Leads'!I2:I),0)", "", ""],
+    ["High Score Leads (>70)", "=COUNTIF('Marketing Leads'!I2:I,\">70\")", "", ""],
+  ];
+  sh.getRange(5, 1, leadMetrics.length, 4).setValues(leadMetrics);
+
+  // Section: Activity KPI
+  const actStart = 5 + leadMetrics.length + 1;
+  sh.getRange(actStart, 1, 1, 4).merge().setValue("📞 ACTIVITY KPI")
+    .setBackground("#1f4e78").setFontColor("#ffffff").setFontWeight("bold");
+
+  const actMetrics = [
+    ["Total Emails Sent", "=SUM('Marketing Leads'!O2:O)", "", ""],
+    ["Total Emails Received", "=SUM('Marketing Leads'!P2:P)", "", ""],
+    ["Email Reply Rate", "=IFERROR(SUM('Marketing Leads'!P2:P)/SUM('Marketing Leads'!O2:O)*100,0)&\"%\"", "", ""],
+    ["Meetings Scheduled", "=COUNTIF('Marketing Leads'!H2:H,\"Meeting Scheduled\")", "", ""],
+    ["Meetings Done", "=COUNTIF('Marketing Leads'!H2:H,\"Meeting Done\")", "", ""],
+    ["Proposals Sent", "=COUNTIF('Marketing Leads'!H2:H,\"Proposal Sent\")", "", ""],
+  ];
+  sh.getRange(actStart + 1, 1, actMetrics.length, 4).setValues(actMetrics);
+
+  // Section: Pipeline / Revenue
+  const revStart = actStart + actMetrics.length + 2;
+  sh.getRange(revStart, 1, 1, 4).merge().setValue("💰 PIPELINE & REVENUE")
+    .setBackground("#1f4e78").setFontColor("#ffffff").setFontWeight("bold");
+
+  const revMetrics = [
+    ["Deals Closed Won", "=COUNTIF('Marketing Leads'!H2:H,\"Closed Won\")", "", ""],
+    ["Deals Closed Lost", "=COUNTIF('Marketing Leads'!H2:H,\"Closed Lost\")", "", ""],
+    ["Conversion Rate", "=IFERROR(COUNTIF('Marketing Leads'!H2:H,\"Closed Won\")/COUNTA('Marketing Leads'!A2:A)*100,0)&\"%\"", "", ""],
+    ["Total Pipeline Value ($)", "=SUMIF('Marketing Leads'!H2:H,\"<>Closed Lost\",'Marketing Leads'!R2:R)", "", ""],
+    ["Closed Won Value ($)", "=SUMIF('Marketing Leads'!H2:H,\"Closed Won\",'Marketing Leads'!R2:R)", "", ""],
+    ["Monthly Target (Deals)", CFG_M.MONTH_TARGET_DEALS, "", ""],
+    ["Progress to Target", "=IFERROR(COUNTIF('Marketing Leads'!H2:H,\"Closed Won\")/"&CFG_M.MONTH_TARGET_DEALS&"*100,0)&\"%\"", "", ""],
+  ];
+  sh.getRange(revStart + 1, 1, revMetrics.length, 4).setValues(revMetrics);
+
+  // Style all metric rows
+  const allDataRows = sh.getRange("A5:B50");
+  allDataRows.setFontSize(10);
+  sh.getRange("A5:A50").setFontWeight("bold");
+  sh.getRange("B5:B50").setBackground("#f8f9fa").setHorizontalAlignment("right");
+
+  sh.setFrozenRows(1);
+  SpreadsheetApp.flush();
+}
+
+// ---- BONUS SHEET ----
+function setupBonusSheet() {
+  const sh = getOrCreateSheet(CFG_M.SHEET_BONUS, "#fbbc04");
+  sh.clearContents();
+  sh.clearFormats();
+
+  sh.setColumnWidth(1, 250);
+  sh.setColumnWidth(2, 150);
+  sh.setColumnWidth(3, 200);
+
+  sh.getRange("A1:C1").merge()
+    .setValue("💰 SHAYAN BONUS CALCULATOR")
+    .setBackground("#1a1a2e").setFontColor("#e2b96b")
+    .setFontSize(14).setFontWeight("bold").setHorizontalAlignment("center");
+
+  sh.getRange("A2:C2").merge()
+    .setValue("🗓 Month: " + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "MMMM yyyy"))
+    .setFontSize(11).setHorizontalAlignment("center").setFontColor("#555");
+
+  const bonusData = [
+    ["", "", ""],
+    ["📊 PERFORMANCE METRICS", "Count", "Bonus ($)"],
+    ["Deals Closed Won", "=COUNTIF('Marketing Leads'!H2:H,\"Closed Won\")", "=B5*" + CFG_M.BONUS_PER_DEAL],
+    ["Meetings Completed", "=COUNTIF('Marketing Leads'!H2:H,\"Meeting Done\")", "=B6*" + CFG_M.BONUS_PER_MEETING],
+    ["Calls Made (est. from logs)", "=COUNTIF('Activity Calendar'!D2:D,\"Call\")", "=B7*" + CFG_M.BONUS_PER_CALL],
+    ["High-Score Leads (>70)", "=COUNTIF('Marketing Leads'!I2:I,\">70\")", "=B8*" + CFG_M.BONUS_SCORE_HIGH],
+    ["", "", ""],
+    ["🎯 TOTAL BONUS THIS MONTH", "", "=SUM(C5:C8)"],
+    ["", "", ""],
+    ["📋 BONUS RULES", "", ""],
+    ["Per Closed Deal", "$" + CFG_M.BONUS_PER_DEAL, ""],
+    ["Per Meeting Done", "$" + CFG_M.BONUS_PER_MEETING, ""],
+    ["Per Call Logged", "$" + CFG_M.BONUS_PER_CALL, ""],
+    ["Per High-Score Lead", "$" + CFG_M.BONUS_SCORE_HIGH, ""],
+  ];
+
+  sh.getRange(3, 1, bonusData.length, 3).setValues(bonusData);
+
+  // Style headers
+  sh.getRange("A4:C4").setBackground("#1f4e78").setFontColor("#ffffff").setFontWeight("bold");
+  sh.getRange("A10:C10").setBackground("#1f4e78").setFontColor("#ffffff").setFontWeight("bold");
+
+  // Style total
+  sh.getRange("A11:C11").setBackground("#34a853").setFontColor("#ffffff")
+    .setFontWeight("bold").setFontSize(12);
+  sh.getRange("C11").setNumberFormat("$#,##0.00");
+
+  sh.getRange("C5:C8").setNumberFormat("$#,##0.00");
+
+  SpreadsheetApp.flush();
+}
+
+// ---- CALENDAR SHEET ----
+function setupCalendarSheet() {
+  const sh = getOrCreateSheet(CFG_M.SHEET_CALENDAR, "#ea4335");
+  sh.clearContents();
+  sh.clearFormats();
+
+  const headers = ["Date", "Time", "Company", "Activity Type", "Notes", "Outcome", "Follow-up Date"];
+  sh.getRange(1, 1, 1, headers.length).setValues([headers]);
+  sh.getRange(1, 1, 1, headers.length)
+    .setBackground("#1a1a2e").setFontColor("#e2b96b")
+    .setFontWeight("bold").setFontSize(10);
+
+  sh.setColumnWidth(1, 110); // Date
+  sh.setColumnWidth(2, 80);  // Time
+  sh.setColumnWidth(3, 160); // Company
+  sh.setColumnWidth(4, 140); // Activity
+  sh.setColumnWidth(5, 250); // Notes
+  sh.setColumnWidth(6, 140); // Outcome
+  sh.setColumnWidth(7, 110); // Follow-up
+
+  const maxRows = 500;
+  sh.getRange(2, 1, maxRows, 1).setNumberFormat("yyyy-mm-dd");
+  sh.getRange(2, 7, maxRows, 1).setNumberFormat("yyyy-mm-dd");
+
+  const actRule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(CFG_M.ACTIVITY_TYPES, true).setAllowInvalid(false).build();
+  sh.getRange(2, 4, maxRows, 1).setDataValidation(actRule);
+
+  const outcomeRule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(["Positive", "Neutral", "Negative", "No Answer", "Scheduled"], true)
+    .setAllowInvalid(false).build();
+  sh.getRange(2, 6, maxRows, 1).setDataValidation(outcomeRule);
+
+  sh.setFrozenRows(1);
+  SpreadsheetApp.flush();
+}
+
+// ============================================================
+// onEdit TRIGGER — AUTO STATUS LOGIC
+// ============================================================
+function onEdit_Marketing(e) {
+  if (!e || !e.range) return;
+  const sheet = e.range.getSheet();
+  if (sheet.getName() !== CFG_M.SHEET_LEADS) return;
+
+  const row = e.range.getRow();
+  const col = e.range.getColumn();
+  if (row <= CFG_M.HEADER_ROWS) return;
+  if (col !== CFG_M.COL_STATUS + 1) return;
+
+  const status = String(e.range.getValue() || "").trim();
+  const now = new Date();
+  const nextCell = sheet.getRange(row, CFG_M.COL_NEXT_ACT + 1);
+  const lastCell = sheet.getRange(row, CFG_M.COL_LAST_ACT + 1);
+  const notesCell = sheet.getRange(row, CFG_M.COL_NOTES + 1);
+
+  lastCell.setValue(now);
+  addMarketingNote(notesCell, "Status → " + status);
+
+  if (status === "Meeting Scheduled") {
+    const next = new Date(now);
+    next.setDate(now.getDate() + 1);
+    nextCell.setValue(next);
+    notifyMeetingSet(sheet.getRange(row, CFG_M.COL_COMPANY + 1).getValue(), now);
+  } else if (status === "Contacted - Email" || status === "Contacted - Call" || status === "Contacted - LinkedIn") {
+    const next = new Date(now);
+    next.setDate(now.getDate() + CFG_M.FOLLOWUP_DAYS);
+    nextCell.setValue(next);
+    // Auto-increment email/call counters
+    if (status === "Contacted - Email") {
+      const emailSentCell = sheet.getRange(row, CFG_M.COL_EMAIL_SENT + 1);
+      emailSentCell.setValue((emailSentCell.getValue() || 0) + 1);
+    }
+  } else if (status === "Closed Won") {
+    addMarketingNote(notesCell, "🎉 DEAL CLOSED!");
+    sendTelegram("🎉 شایان جان! Deal بسته شد!\n\nشرکت: " + sheet.getRange(row, CFG_M.COL_COMPANY + 1).getValue());
+  }
+}
+
+// ============================================================
+// LOG ACTIVITY (MENU)
+// ============================================================
+function logActivity() {
+  const ui = SpreadsheetApp.getUi();
+  const sheet = getLeadSheet();
+  if (!sheet) { ui.alert("ابتدا Setup را اجرا کن"); return; }
+
+  const row = sheet.getActiveRange().getRow();
+  if (row <= CFG_M.HEADER_ROWS) { ui.alert("یک لید انتخاب کن"); return; }
+
+  const company = sheet.getRange(row, CFG_M.COL_COMPANY + 1).getValue();
+
+  const typeRes = ui.prompt("📅 Log Activity",
+    "Company: " + company + "\n\nنوع فعالیت:\n1=Email  2=Call  3=Meeting  4=LinkedIn  5=Follow-up\n\nعدد وارد کن:", ui.ButtonSet.OK_CANCEL);
+  if (typeRes.getSelectedButton() !== ui.Button.OK) return;
+
+  const typeMap = { "1": "Email", "2": "Call", "3": "Meeting", "4": "LinkedIn Message", "5": "Follow-up" };
+  const actType = typeMap[typeRes.getResponseText().trim()] || "Follow-up";
+
+  const noteRes = ui.prompt("📝 یادداشت", "نتیجه این فعالیت:", ui.ButtonSet.OK_CANCEL);
+  const noteText = noteRes.getSelectedButton() === ui.Button.OK ? noteRes.getResponseText() : "";
+
+  const now = new Date();
+
+  // به‌روزرسانی لید
+  sheet.getRange(row, CFG_M.COL_LAST_ACT + 1).setValue(now);
+  sheet.getRange(row, CFG_M.COL_ACT_TYPE + 1).setValue(actType);
+
+  const next = new Date(now);
+  next.setDate(now.getDate() + CFG_M.FOLLOWUP_DAYS);
+  sheet.getRange(row, CFG_M.COL_NEXT_ACT + 1).setValue(next);
+
+  if (actType === "Email") {
+    const cell = sheet.getRange(row, CFG_M.COL_EMAIL_SENT + 1);
+    cell.setValue((cell.getValue() || 0) + 1);
+  }
+
+  addMarketingNote(sheet.getRange(row, CFG_M.COL_NOTES + 1), actType + ": " + noteText);
+
+  // ثبت در Calendar
+  const calSh = getCalendarSheet();
+  if (calSh) {
+    const lastCal = calSh.getLastRow();
+    calSh.getRange(lastCal + 1, 1, 1, 5).setValues([[
+      now, Utilities.formatDate(now, Session.getScriptTimeZone(), "HH:mm"),
+      company, actType, noteText
+    ]]);
+  }
+
+  ui.alert("✅ فعالیت ثبت شد!\nفالوآپ بعدی: " + fmtDate(next));
+}
+
+// ============================================================
+// SCHEDULE MEETING (MENU)
+// ============================================================
+function scheduleMeeting() {
+  const ui = SpreadsheetApp.getUi();
+  const sheet = getLeadSheet();
+  if (!sheet) { ui.alert("ابتدا Setup را اجرا کن"); return; }
+
+  const row = sheet.getActiveRange().getRow();
+  if (row <= CFG_M.HEADER_ROWS) { ui.alert("یک لید انتخاب کن"); return; }
+
+  const company = sheet.getRange(row, CFG_M.COL_COMPANY + 1).getValue();
+
+  const dateRes = ui.prompt("📅 Schedule Meeting",
+    "شرکت: " + company + "\n\nتاریخ جلسه (yyyy-mm-dd):", ui.ButtonSet.OK_CANCEL);
+  if (dateRes.getSelectedButton() !== ui.Button.OK) return;
+
+  const dateStr = dateRes.getResponseText().trim();
+  const meetingDate = new Date(dateStr);
+  if (isNaN(meetingDate)) { ui.alert("تاریخ نامعتبر است"); return; }
+
+  sheet.getRange(row, CFG_M.COL_MEETING + 1).setValue(meetingDate);
+  sheet.getRange(row, CFG_M.COL_STATUS + 1).setValue("Meeting Scheduled");
+  sheet.getRange(row, CFG_M.COL_NEXT_ACT + 1).setValue(meetingDate);
+
+  addMarketingNote(sheet.getRange(row, CFG_M.COL_NOTES + 1),
+    "Meeting scheduled for " + dateStr);
+
+  // ثبت در Calendar
+  const calSh = getCalendarSheet();
+  if (calSh) {
+    const lastCal = calSh.getLastRow();
+    calSh.getRange(lastCal + 1, 1, 1, 5).setValues([[
+      meetingDate, "09:00", company, "Meeting", "Scheduled meeting"
+    ]]);
+  }
+
+  sendTelegram("📅 جلسه ست شد!\n\nشرکت: " + company + "\nتاریخ: " + dateStr);
+
+  ui.alert("✅ جلسه ثبت شد!\nتاریخ: " + dateStr);
+}
+
+// ============================================================
+// AI SCORE — SINGLE LEAD
+// ============================================================
+function aiScoreSelectedLead() {
+  const ui = SpreadsheetApp.getUi();
+  const sheet = getLeadSheet();
+  if (!sheet) { ui.alert("ابتدا Setup اجرا کن"); return; }
+
+  const row = sheet.getActiveRange().getRow();
+  if (row <= CFG_M.HEADER_ROWS) { ui.alert("یک لید انتخاب کن"); return; }
+
+  const rowData = sheet.getRange(row, 1, 1, 20).getValues()[0];
+  const result = scoreLeadWithAI(rowData);
+
+  sheet.getRange(row, CFG_M.COL_SCORE + 1).setValue(result.score);
+  sheet.getRange(row, CFG_M.COL_SCORE_WHY + 1).setValue(result.reason);
+
+  ui.alert(`🤖 AI Score: ${result.score}/100\n\n${result.reason}`);
+}
+
+// ============================================================
+// AI SCORE — ALL LEADS
+// ============================================================
+function aiScoreAllLeads() {
+  const sheet = getLeadSheet();
+  if (!sheet) return;
+
+  const data = sheet.getDataRange().getValues();
+  let count = 0;
+
+  for (let i = CFG_M.HEADER_ROWS; i < data.length; i++) {
+    const company = data[i][CFG_M.COL_COMPANY];
+    if (!company) continue;
+
+    // فقط اگر اسکور ندارد
+    const existingScore = data[i][CFG_M.COL_SCORE];
+    if (existingScore && existingScore > 0) continue;
+
+    const result = scoreLeadWithAI(data[i]);
+    sheet.getRange(i + 1, CFG_M.COL_SCORE + 1).setValue(result.score);
+    sheet.getRange(i + 1, CFG_M.COL_SCORE_WHY + 1).setValue(result.reason);
+    count++;
+
+    Utilities.sleep(1000); // جلوگیری از rate limit
+  }
+
+  SpreadsheetApp.getUi().alert("✅ " + count + " لید اسکورگذاری شد!");
+}
+
+// ============================================================
+// CORE AI SCORING FUNCTION
+// ============================================================
+function scoreLeadWithAI(rowData) {
+  const company  = rowData[CFG_M.COL_COMPANY]  || "Unknown";
+  const source   = rowData[CFG_M.COL_SOURCE]   || "Unknown";
+  const status   = rowData[CFG_M.COL_STATUS]   || "New Lead";
+  const industry = rowData[CFG_M.COL_INDUSTRY] || "Unknown";
+  const dealVal  = rowData[CFG_M.COL_DEAL_VAL] || 0;
+  const emailSent = rowData[CFG_M.COL_EMAIL_SENT] || 0;
+  const emailRecd = rowData[CFG_M.COL_EMAIL_RECD] || 0;
+  const hasPhone  = rowData[CFG_M.COL_PHONE] ? "Yes" : "No";
+  const hasLinkedIn = rowData[CFG_M.COL_LINKEDIN] ? "Yes" : "No";
+  const lastAct  = rowData[CFG_M.COL_LAST_ACT] instanceof Date ? fmtDate(rowData[CFG_M.COL_LAST_ACT]) : "Never";
+  const nextAct  = rowData[CFG_M.COL_NEXT_ACT] instanceof Date ? fmtDate(rowData[CFG_M.COL_NEXT_ACT]) : "None";
+  const notes    = rowData[CFG_M.COL_NOTES]    || "";
+
+  // اگر API key نداره، fallback به rule-based scoring
+  if (!CFG_M.ANTHROPIC_API_KEY || CFG_M.ANTHROPIC_API_KEY === "YOUR_ANTHROPIC_KEY_HERE") {
+    return ruleBasedScore(rowData);
+  }
+
+  try {
+    const prompt = `You are a B2B sales lead scoring expert for Topping Courier, a courier/delivery company in Canada.
+
+Score this marketing lead from 0 to 100 based on conversion probability.
+
+Lead Data:
+- Company: ${company}
+- Source: ${source}
+- Industry: ${industry}
+- Status: ${status}
+- Deal Value: $${dealVal}
+- Emails Sent: ${emailSent}
+- Emails Received (replies): ${emailRecd}
+- Has Phone: ${hasPhone}
+- Has LinkedIn: ${hasLinkedIn}
+- Last Activity: ${lastAct}
+- Next Action: ${nextAct}
+- Notes: ${notes}
+
+Scoring criteria:
+- Higher email reply rate = higher score
+- Meeting Scheduled/Done = high score
+- LinkedIn source often higher quality
+- Large deal value = boost
+- Recent activity = boost
+- Stale leads (no activity 30+ days) = penalty
+
+Respond ONLY in this JSON format (no other text):
+{"score": 75, "reason": "Short explanation max 20 words"}`;
+
+    const response = UrlFetchApp.fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": CFG_M.ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01"
+      },
+      payload: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 150,
+        messages: [{ role: "user", content: prompt }]
+      }),
+      muteHttpExceptions: true
+    });
+
+    const data = JSON.parse(response.getContentText());
+    if (data && data.content && data.content[0]) {
+      const parsed = JSON.parse(data.content[0].text);
+      return { score: Math.min(100, Math.max(0, parseInt(parsed.score))), reason: parsed.reason };
+    }
+  } catch (err) {
+    Logger.log("AI Score error: " + err);
+  }
+
+  // fallback
+  return ruleBasedScore(rowData);
+}
+
+// ============================================================
+// RULE-BASED SCORE (FALLBACK, بدون API)
+// ============================================================
+function ruleBasedScore(rowData) {
+  let score = 30;
+  const reasons = [];
+
+  const source   = String(rowData[CFG_M.COL_SOURCE]   || "");
+  const status   = String(rowData[CFG_M.COL_STATUS]   || "");
+  const emailSent = parseInt(rowData[CFG_M.COL_EMAIL_SENT]) || 0;
+  const emailRecd = parseInt(rowData[CFG_M.COL_EMAIL_RECD]) || 0;
+  const dealVal  = parseFloat(rowData[CFG_M.COL_DEAL_VAL]) || 0;
+  const hasPhone  = rowData[CFG_M.COL_PHONE] ? true : false;
+  const hasLinkedIn = rowData[CFG_M.COL_LINKEDIN] ? true : false;
+  const lastAct  = rowData[CFG_M.COL_LAST_ACT];
+
+  if (source === "LinkedIn")    { score += 15; reasons.push("LinkedIn quality"); }
+  if (source === "Google Ads")  { score += 10; reasons.push("Google Ads intent"); }
+  if (source === "SEO")         { score += 12; reasons.push("Organic interest"); }
+
+  if (status === "Meeting Scheduled") { score += 25; reasons.push("Meeting booked"); }
+  else if (status === "Meeting Done") { score += 30; reasons.push("Met in person"); }
+  else if (status === "Proposal Sent"){ score += 20; reasons.push("Proposal sent"); }
+  else if (status === "Negotiating")  { score += 28; reasons.push("In negotiation"); }
+  else if (status === "Qualified")    { score += 15; reasons.push("Qualified"); }
+
+  if (emailSent > 0 && emailRecd > 0) {
+    const replyRate = emailRecd / emailSent;
+    if (replyRate >= 0.5) { score += 15; reasons.push("High reply rate"); }
+    else if (replyRate > 0) { score += 8; reasons.push("Some replies"); }
+  }
+
+  if (dealVal >= 5000) { score += 15; reasons.push("Large deal value"); }
+  else if (dealVal >= 1000) { score += 8; reasons.push("Medium deal value"); }
+
+  if (hasPhone) { score += 5; reasons.push("Has phone"); }
+  if (hasLinkedIn) { score += 5; reasons.push("Has LinkedIn"); }
+
+  if (lastAct instanceof Date) {
+    const daysSince = Math.floor((new Date() - lastAct) / 86400000);
+    if (daysSince > 30) { score -= 15; reasons.push("Stale >30d"); }
+    else if (daysSince > 14) { score -= 7; reasons.push("Inactive 14d"); }
+  } else {
+    score -= 10;
+    reasons.push("No activity logged");
+  }
+
+  score = Math.min(100, Math.max(0, score));
+  return { score, reason: reasons.slice(0, 4).join(" | ") };
+}
+
+// ============================================================
+// UPDATE KPI DASHBOARD (refresh timestamp)
+// ============================================================
+function updateKPIDashboard() {
+  const sh = getKPISheet();
+  if (!sh) { SpreadsheetApp.getUi().alert("ابتدا Setup را اجرا کن"); return; }
+  sh.getRange("A2").setValue("Last Updated: " + fmtDateTime(new Date()));
+  SpreadsheetApp.flush();
+  SpreadsheetApp.getUi().alert("✅ KPI Dashboard بروز شد!");
+}
+
+// ============================================================
+// CALCULATE BONUS
+// ============================================================
+function calculateBonus() {
+  const sh = getBonusSheet();
+  if (!sh) { SpreadsheetApp.getUi().alert("ابتدا Setup را اجرا کن"); return; }
+
+  sh.getRange("A2").setValue("🗓 Month: " + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "MMMM yyyy"));
+  SpreadsheetApp.flush();
+
+  // خواندن مقادیر محاسبه‌شده
+  const deals    = sh.getRange("B5").getValue() || 0;
+  const meetings = sh.getRange("B6").getValue() || 0;
+  const calls    = sh.getRange("B7").getValue() || 0;
+  const highScore= sh.getRange("B8").getValue() || 0;
+  const total    = sh.getRange("C11").getValue() || 0;
+
+  const msg =
+    "💰 بونوس محاسبه شد!\n\n" +
+    "✅ Deals Won: " + deals + " × $" + CFG_M.BONUS_PER_DEAL + " = $" + (deals * CFG_M.BONUS_PER_DEAL) + "\n" +
+    "📅 Meetings: " + meetings + " × $" + CFG_M.BONUS_PER_MEETING + " = $" + (meetings * CFG_M.BONUS_PER_MEETING) + "\n" +
+    "📞 Calls: " + calls + " × $" + CFG_M.BONUS_PER_CALL + " = $" + (calls * CFG_M.BONUS_PER_CALL) + "\n" +
+    "🤖 High Score Leads: " + highScore + " × $" + CFG_M.BONUS_SCORE_HIGH + " = $" + (highScore * CFG_M.BONUS_SCORE_HIGH) + "\n\n" +
+    "💵 TOTAL BONUS: $" + total;
+
+  SpreadsheetApp.getUi().alert(msg);
+  sendTelegram("💰 بونوس ماهانه شایان:\n\n" + msg);
+}
+
+// ============================================================
+// AI REPORT → TELEGRAM + EMAIL
+// ============================================================
+function sendAIReport() {
+  const sheet = getLeadSheet();
+  if (!sheet) return;
+
+  const data = sheet.getDataRange().getValues();
+  const today = new Date();
+
+  let total = 0, won = 0, lost = 0, meetings = 0, emails_sent = 0, emails_recd = 0;
+  let totalScore = 0, scoreCount = 0;
+  const bySource = {};
+  const hotLeads = [];
+  const overdue = [];
+
+  for (let i = CFG_M.HEADER_ROWS; i < data.length; i++) {
+    const row = data[i];
+    if (!row[CFG_M.COL_COMPANY]) continue;
+    total++;
+
+    const status = String(row[CFG_M.COL_STATUS] || "");
+    const source = String(row[CFG_M.COL_SOURCE] || "Other");
+    const score  = parseFloat(row[CFG_M.COL_SCORE]) || 0;
+    const nextAct = row[CFG_M.COL_NEXT_ACT];
+
+    if (status === "Closed Won") won++;
+    if (status === "Closed Lost") lost++;
+    if (status === "Meeting Scheduled" || status === "Meeting Done") meetings++;
+
+    emails_sent += parseInt(row[CFG_M.COL_EMAIL_SENT]) || 0;
+    emails_recd += parseInt(row[CFG_M.COL_EMAIL_RECD]) || 0;
+
+    bySource[source] = (bySource[source] || 0) + 1;
+
+    if (score > 0) { totalScore += score; scoreCount++; }
+    if (score >= 70) hotLeads.push({ company: row[CFG_M.COL_COMPANY], score, status });
+
+    if (nextAct instanceof Date && midnight(nextAct) < midnight(today) &&
+        status !== "Closed Won" && status !== "Closed Lost" && status !== "Not Interested") {
+      const days = Math.floor((midnight(today) - midnight(nextAct)) / 86400000);
+      overdue.push({ company: row[CFG_M.COL_COMPANY], days, status });
+    }
+  }
+
+  const avgScore = scoreCount > 0 ? (totalScore / scoreCount).toFixed(1) : "N/A";
+  const convRate = total > 0 ? ((won / total) * 100).toFixed(1) : "0";
+  const replyRate = emails_sent > 0 ? ((emails_recd / emails_sent) * 100).toFixed(1) : "0";
+
+  // AI تحلیل وضعیت
+  const aiAnalysis = getAIAnalysis({
+    total, won, lost, meetings, emails_sent, emails_recd,
+    avgScore, convRate, replyRate, hotLeads, overdue, bySource
+  });
+
+  // ساختن متن گزارش
+  const reportDate = Utilities.formatDate(today, Session.getScriptTimeZone(), "MMMM dd, yyyy");
+
+  const telegramMsg =
+    "📊 *گزارش بازاریابی شایان*\n" +
+    "📅 " + reportDate + "\n\n" +
+    "━━━━━━━━━━━━━━━━\n" +
+    "👥 کل لید: " + total + "\n" +
+    "✅ Closed Won: " + won + "\n" +
+    "❌ Closed Lost: " + lost + "\n" +
+    "📅 جلسات: " + meetings + "\n" +
+    "📧 ایمیل ارسالی: " + emails_sent + " | دریافتی: " + emails_recd + "\n" +
+    "↩️ نرخ ریپلای: " + replyRate + "%\n" +
+    "🤖 میانگین AI Score: " + avgScore + "/100\n" +
+    "🏆 نرخ تبدیل: " + convRate + "%\n" +
+    "━━━━━━━━━━━━━━━━\n\n" +
+    "🔥 لیدهای داغ (" + hotLeads.length + "):\n" +
+    hotLeads.slice(0, 5).map(l => "  • " + l.company + " [" + l.score + "]").join("\n") + "\n\n" +
+    "⚠️ عقب‌افتاده (" + overdue.length + "):\n" +
+    overdue.slice(0, 5).map(o => "  • " + o.company + " [" + o.days + "d]").join("\n") + "\n\n" +
+    "🤖 تحلیل AI:\n" + aiAnalysis;
+
+  sendTelegram(telegramMsg);
+
+  // Email
+  const emailLines = [
+    "📊 SHAYAN MARKETING REPORT — " + reportDate,
+    "═════════════════════════════════════════",
+    "",
+    "LEAD METRICS:",
+    "  Total Leads: " + total,
+    "  Closed Won: " + won,
+    "  Closed Lost: " + lost,
+    "  Meetings: " + meetings,
+    "  Avg AI Score: " + avgScore + "/100",
+    "  Conversion Rate: " + convRate + "%",
+    "",
+    "EMAIL ACTIVITY:",
+    "  Sent: " + emails_sent + "  |  Received: " + emails_recd,
+    "  Reply Rate: " + replyRate + "%",
+    "",
+    "SOURCE BREAKDOWN:",
+    ...Object.keys(bySource).map(s => "  " + s + ": " + bySource[s]),
+    "",
+    "HOT LEADS (Score ≥ 70):",
+    ...hotLeads.slice(0, 10).map(l => "  • " + l.company + " — Score: " + l.score + " — " + l.status),
+    "",
+    "OVERDUE FOLLOW-UPS:",
+    ...overdue.slice(0, 10).map(o => "  • " + o.company + " — " + o.days + " days overdue — " + o.status),
+    "",
+    "AI ANALYSIS:",
+    aiAnalysis
+  ];
+
+  MailApp.sendEmail({
+    to: CFG_M.SHAYAN_EMAIL,
+    cc: CFG_M.MANAGER_EMAIL,
+    subject: "📊 Shayan Marketing Report | Won: " + won + " | Score: " + avgScore + " | " + reportDate,
+    body: emailLines.join("\n")
+  });
+
+  SpreadsheetApp.getUi().alert("✅ گزارش به تلگرام و ایمیل ارسال شد!");
+}
+
+// ============================================================
+// AI ANALYSIS TEXT
+// ============================================================
+function getAIAnalysis(metrics) {
+  if (!CFG_M.ANTHROPIC_API_KEY || CFG_M.ANTHROPIC_API_KEY === "YOUR_ANTHROPIC_KEY_HERE") {
+    return generateSimpleAnalysis(metrics);
+  }
+
+  try {
+    const prompt = `You are analyzing the marketing performance of Shayan, a marketing specialist at Topping Courier (Canadian courier company).
+
+Data:
+- Total Leads: ${metrics.total}
+- Won: ${metrics.won}, Lost: ${metrics.lost}
+- Meetings: ${metrics.meetings}
+- Emails Sent: ${metrics.emails_sent}, Replies: ${metrics.emails_recd}
+- Reply Rate: ${metrics.replyRate}%
+- Avg Lead Score: ${metrics.avgScore}/100
+- Conversion Rate: ${metrics.convRate}%
+- Hot Leads (score>70): ${metrics.hotLeads.length}
+- Overdue Follow-ups: ${metrics.overdue.length}
+
+Write a 3-4 sentence analysis in Persian (Farsi) that:
+1. Highlights what's going well
+2. Points out the biggest area to improve
+3. Gives one specific actionable recommendation
+
+Keep it concise and motivating.`;
+
+    const response = UrlFetchApp.fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": CFG_M.ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01"
+      },
+      payload: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 300,
+        messages: [{ role: "user", content: prompt }]
+      }),
+      muteHttpExceptions: true
+    });
+
+    const data = JSON.parse(response.getContentText());
+    if (data && data.content && data.content[0]) {
+      return data.content[0].text;
+    }
+  } catch (err) {
+    Logger.log("AI Analysis error: " + err);
+  }
+
+  return generateSimpleAnalysis(metrics);
+}
+
+function generateSimpleAnalysis(m) {
+  const lines = [];
+  if (m.won > 0) lines.push("✅ " + m.won + " deal بسته شد — عالی!");
+  if (m.overdue.length > 5) lines.push("⚠️ " + m.overdue.length + " فالوآپ عقب‌افتاده — اولویت رو روشون بذار.");
+  if (parseFloat(m.replyRate) < 20) lines.push("📧 نرخ ریپلای ایمیل پایینه (" + m.replyRate + "%) — Subject Line رو تغییر بده.");
+  if (m.hotLeads.length > 0) lines.push("🔥 " + m.hotLeads.length + " لید داغ منتظرن — همین هفته تماس بگیر!");
+  return lines.join("\n") || "عملکرد در حال پیشرفته. ادامه بده! 💪";
+}
+
+// ============================================================
+// DAILY CHECK
+// ============================================================
+function dailyMarketingCheck() {
+  sendAIReport();
+}
+
+// ============================================================
+// TELEGRAM SENDER
+// ============================================================
+function sendTelegram(message) {
+  if (!CFG_M.TELEGRAM_TOKEN || CFG_M.TELEGRAM_TOKEN === "YOUR_BOT_TOKEN_HERE") {
+    Logger.log("Telegram not configured. Message: " + message);
+    return;
+  }
+
+  try {
+    const url = "https://api.telegram.org/bot" + CFG_M.TELEGRAM_TOKEN + "/sendMessage";
+    UrlFetchApp.fetch(url, {
+      method: "POST",
+      contentType: "application/json",
+      payload: JSON.stringify({
+        chat_id: CFG_M.TELEGRAM_CHAT_ID,
+        text: message,
+        parse_mode: "Markdown"
+      }),
+      muteHttpExceptions: true
+    });
+  } catch (err) {
+    Logger.log("Telegram error: " + err);
+  }
+}
+
+// ============================================================
+// NOTIFY MEETING SET
+// ============================================================
+function notifyMeetingSet(company, date) {
+  sendTelegram("📅 جلسه ست شد!\n\nشرکت: " + company + "\nزمان: " + fmtDate(date));
+}
+
+// ============================================================
+// NOTE HELPER
+// ============================================================
+function addMarketingNote(cell, text) {
+  const existing = cell.getValue() || "";
+  const stamp = "[" + fmtDateTime(new Date()) + "] " + text;
+  cell.setValue(existing ? stamp + "\n" + existing : stamp);
+}
+
+// ============================================================
+// TRIGGERS
+// ============================================================
+function createMarketingTriggers() {
+  deleteMarketingTriggers();
+
+  // گزارش روزانه ساعت ۸ صبح
+  ScriptApp.newTrigger("dailyMarketingCheck")
+    .timeBased().everyDays(1).atHour(8).create();
+
+  // گزارش هفتگی دوشنبه ساعت ۹
+  ScriptApp.newTrigger("sendAIReport")
+    .timeBased().onWeekDay(ScriptApp.WeekDay.MONDAY).atHour(9).create();
+
+  SpreadsheetApp.getUi().alert(
+    "✅ Triggers ساخته شدند!\n\nگزارش روزانه: هر روز ساعت ۸ صبح\nگزارش هفتگی: هر دوشنبه ساعت ۹"
+  );
+}
+
+function deleteMarketingTriggers() {
+  ScriptApp.getProjectTriggers().forEach(t => ScriptApp.deleteTrigger(t));
+}
+
+// ============================================================
+// END
+// ============================================================

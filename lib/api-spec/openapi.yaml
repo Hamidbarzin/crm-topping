@@ -1,0 +1,3013 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: Topping CRM API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Authentication
+  - name: users
+    description: User management
+  - name: clients
+    description: Client management
+  - name: companies
+    description: Company management
+  - name: leads
+    description: Lead management
+  - name: deals
+    description: Deal/pipeline management
+  - name: meetings
+    description: Meeting/calendar management
+  - name: kpi
+    description: KPI metrics
+  - name: tasks
+    description: Tasks and reminders
+  - name: booking
+    description: Public booking
+  - name: payroll
+    description: Payroll and bonus management
+  - name: automations
+    description: Sales automation engine
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # ─── AUTH ───────────────────────────────────────────────────────────────────
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+
+  # ─── USERS ──────────────────────────────────────────────────────────────────
+
+  /users:
+    get:
+      operationId: listUsers
+      tags: [users]
+      summary: List all users
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+    post:
+      operationId: createUser
+      tags: [users]
+      summary: Create a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/{id}:
+    get:
+      operationId: getUser
+      tags: [users]
+      summary: Get user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    patch:
+      operationId: updateUser
+      tags: [users]
+      summary: Update user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  # ─── COMPANIES ──────────────────────────────────────────────────────────────
+
+  /companies:
+    get:
+      operationId: listCompanies
+      tags: [companies]
+      summary: List companies
+      responses:
+        "200":
+          description: List of companies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Company"
+    post:
+      operationId: createCompany
+      tags: [companies]
+      summary: Create company
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompanyInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Company"
+
+  /companies/{id}:
+    get:
+      operationId: getCompany
+      tags: [companies]
+      summary: Get company
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Company
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Company"
+    patch:
+      operationId: updateCompany
+      tags: [companies]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompanyUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Company"
+    delete:
+      operationId: deleteCompany
+      tags: [companies]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ─── CLIENTS ────────────────────────────────────────────────────────────────
+
+  /clients:
+    get:
+      operationId: listClients
+      tags: [clients]
+      summary: List clients
+      responses:
+        "200":
+          description: List of clients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Client"
+    post:
+      operationId: createClient
+      tags: [clients]
+      summary: Create client
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+
+  /clients/{id}:
+    get:
+      operationId: getClient
+      tags: [clients]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Client
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+    patch:
+      operationId: updateClient
+      tags: [clients]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+    delete:
+      operationId: deleteClient
+      tags: [clients]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ─── LEADS ──────────────────────────────────────────────────────────────────
+
+  /leads:
+    get:
+      operationId: listLeads
+      tags: [leads]
+      summary: List leads
+      responses:
+        "200":
+          description: List of leads
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Lead"
+    post:
+      operationId: createLead
+      tags: [leads]
+      summary: Create lead
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeadInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+
+  /leads/{id}:
+    get:
+      operationId: getLead
+      tags: [leads]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Lead
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+    patch:
+      operationId: updateLead
+      tags: [leads]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeadUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+    delete:
+      operationId: deleteLead
+      tags: [leads]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /leads/{id}/score:
+    post:
+      operationId: scoreLead
+      tags: [leads]
+      summary: Calculate the AI score for a lead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Lead with updated AI score
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+
+  /leads/{id}/log-activity:
+    post:
+      operationId: logLeadActivity
+      tags: [leads]
+      summary: Log an activity (email, call, meeting, etc.) against a lead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LogActivityInput"
+      responses:
+        "200":
+          description: Updated lead
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+
+  /leads/{id}/schedule-meeting:
+    post:
+      operationId: scheduleLeadMeeting
+      tags: [leads]
+      summary: Schedule a meeting with a lead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScheduleMeetingInput"
+      responses:
+        "200":
+          description: Updated lead
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+
+  /leads/marketing-kpi:
+    get:
+      operationId: getMarketingKpi
+      tags: [leads]
+      summary: Marketing KPI dashboard metrics computed from leads
+      responses:
+        "200":
+          description: Marketing KPI metrics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarketingKpi"
+
+  /leads/marketing-report:
+    post:
+      operationId: generateMarketingReport
+      tags: [leads]
+      summary: Generate an AI marketing performance report (optionally email it)
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MarketingReportInput"
+      responses:
+        "200":
+          description: Generated report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarketingReport"
+
+  # ─── DEALS ──────────────────────────────────────────────────────────────────
+
+  /deals:
+    get:
+      operationId: listDeals
+      tags: [deals]
+      summary: List deals
+      responses:
+        "200":
+          description: List of deals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Deal"
+    post:
+      operationId: createDeal
+      tags: [deals]
+      summary: Create deal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DealInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deal"
+
+  /deals/{id}:
+    get:
+      operationId: getDeal
+      tags: [deals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deal"
+    patch:
+      operationId: updateDeal
+      tags: [deals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DealUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deal"
+    delete:
+      operationId: deleteDeal
+      tags: [deals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /deals/pipeline:
+    get:
+      operationId: getDealPipeline
+      tags: [deals]
+      summary: Get pipeline summary grouped by stage
+      responses:
+        "200":
+          description: Pipeline summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PipelineSummary"
+
+  /deals/pending-submissions:
+    get:
+      operationId: listPendingSubmissions
+      tags: [deals]
+      summary: "[CEO/Admin] Deals submitted and awaiting review"
+      responses:
+        "200":
+          description: Pending submissions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Deal"
+
+  /deals/founder-approvals:
+    get:
+      operationId: listFounderApprovals
+      tags: [deals]
+      summary: "[CEO/Admin] Deals pending founder approval"
+      responses:
+        "200":
+          description: Pending founder approvals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Deal"
+
+  /deals/{id}/submit:
+    post:
+      operationId: submitDeal
+      tags: [deals]
+      summary: Submit a deal for manager review
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deal"
+
+  /deals/{id}/review:
+    patch:
+      operationId: reviewDeal
+      tags: [deals]
+      summary: "[CEO/Admin] Approve or reject a submitted deal"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DealReviewInput"
+      responses:
+        "200":
+          description: Reviewed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deal"
+
+  /deals/{id}/founder-approval:
+    patch:
+      operationId: setFounderApproval
+      tags: [deals]
+      summary: "[CEO/Admin] Set founder approval on a deal"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FounderApprovalInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deal"
+
+  /deals/{id}/clawback:
+    patch:
+      operationId: applyClawback
+      tags: [deals]
+      summary: "[CEO/Admin] Apply a clawback to a deal"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClawbackInput"
+      responses:
+        "200":
+          description: Clawback applied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deal"
+
+  # ─── MEETINGS ───────────────────────────────────────────────────────────────
+
+  /meetings:
+    get:
+      operationId: listMeetings
+      tags: [meetings]
+      summary: List all meetings
+      responses:
+        "200":
+          description: List of meetings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Meeting"
+    post:
+      operationId: createMeeting
+      tags: [meetings]
+      summary: Create meeting
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MeetingInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Meeting"
+
+  /meetings/check-conflict:
+    post:
+      operationId: checkConflict
+      tags: [meetings]
+      summary: Check for scheduling conflicts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConflictCheckInput"
+      responses:
+        "200":
+          description: Conflict check result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConflictCheckResult"
+
+  /meetings/{id}:
+    get:
+      operationId: getMeeting
+      tags: [meetings]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Meeting
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Meeting"
+    patch:
+      operationId: updateMeeting
+      tags: [meetings]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MeetingUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Meeting"
+    delete:
+      operationId: deleteMeeting
+      tags: [meetings]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /meetings/team-calendar:
+    get:
+      operationId: getTeamCalendar
+      tags: [meetings]
+      summary: Get team calendar view
+      parameters:
+        - name: start
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: end
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Team calendar
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Meeting"
+
+  # ─── TASKS ──────────────────────────────────────────────────────────────────
+
+  /tasks:
+    get:
+      operationId: listTasks
+      tags: [tasks]
+      summary: List tasks
+      responses:
+        "200":
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+    post:
+      operationId: createTask
+      tags: [tasks]
+      summary: Create task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+
+  /tasks/{id}:
+    patch:
+      operationId: updateTask
+      tags: [tasks]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+    delete:
+      operationId: deleteTask
+      tags: [tasks]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ─── KPI ────────────────────────────────────────────────────────────────────
+
+  /kpi/dashboard:
+    get:
+      operationId: getKpiDashboard
+      tags: [kpi]
+      summary: Get KPI dashboard summary
+      responses:
+        "200":
+          description: KPI dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KpiDashboard"
+
+  /kpi/user/{userId}:
+    get:
+      operationId: getUserKpi
+      tags: [kpi]
+      summary: Get KPI for a specific user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User KPI
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserKpi"
+
+  /kpi/reports:
+    get:
+      operationId: listKpiReports
+      tags: [kpi]
+      summary: List daily KPI reports
+      responses:
+        "200":
+          description: KPI reports
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/KpiReport"
+    post:
+      operationId: createKpiReport
+      tags: [kpi]
+      summary: Submit daily KPI report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KpiReportInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KpiReport"
+
+  # ─── BOOKING ────────────────────────────────────────────────────────────────
+
+  /booking/availability:
+    get:
+      operationId: getBookingAvailability
+      tags: [booking]
+      summary: Get available slots for booking
+      parameters:
+        - name: userSlug
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: date
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Available time slots
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AvailabilityResponse"
+
+  /booking/book:
+    post:
+      operationId: createBooking
+      tags: [booking]
+      summary: Book a meeting slot
+      parameters:
+        - name: userSlug
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingInput"
+      responses:
+        "201":
+          description: Booking confirmed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Meeting"
+
+  /booking/requests:
+    get:
+      operationId: getBookingRequests
+      tags: [booking]
+      summary: Get all booking requests (manager only)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of booking requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BookingRequest"
+
+  /booking/requests/{id}/assign:
+    patch:
+      operationId: assignBookingRequest
+      tags: [booking]
+      summary: Assign a booking to a team member
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingAssignInput"
+      responses:
+        "200":
+          description: Booking assigned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Meeting"
+
+  # ─── PAYROLL ────────────────────────────────────────────────────────────────
+
+  /payroll:
+    get:
+      operationId: getPayrollRecords
+      tags: [payroll]
+      summary: Get payroll records (manager sees all, user sees own)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of payroll records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PayrollRecord"
+
+  /payroll/my:
+    get:
+      operationId: getMyPayroll
+      tags: [payroll]
+      summary: Get current user's payroll records
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: My payroll records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PayrollRecord"
+
+  /payroll/calculate:
+    post:
+      operationId: calculatePayroll
+      tags: [payroll]
+      summary: Calculate and submit payroll for AI scoring
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PayrollCalculateInput"
+      responses:
+        "201":
+          description: Payroll calculated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayrollRecord"
+
+  /payroll/{id}/approve:
+    patch:
+      operationId: approvePayroll
+      tags: [payroll]
+      summary: "[CEO/Admin] Approve a payroll record"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PayrollApproveInput"
+      responses:
+        "200":
+          description: Payroll approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayrollRecord"
+
+  /payroll/{id}/reject:
+    patch:
+      operationId: rejectPayroll
+      tags: [payroll]
+      summary: "[CEO/Admin] Reject a payroll record"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PayrollRejectInput"
+      responses:
+        "200":
+          description: Payroll rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayrollRecord"
+
+  /payroll/{id}/mark-paid:
+    patch:
+      operationId: markPayrollPaid
+      tags: [payroll]
+      summary: "[CEO/Admin] Mark payroll as paid"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Payroll marked paid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayrollRecord"
+
+  /payroll/{id}/send:
+    post:
+      operationId: sendPayrollEmail
+      tags: [payroll]
+      summary: "[CEO/Admin] Email the payroll record to its owner"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Email sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                required: [success]
+
+  /assistant/ask:
+    post:
+      operationId: askAssistant
+      tags: [assistant]
+      summary: Ask the AI assistant a question about your CRM data (role-scoped, read-only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssistantAskInput"
+      responses:
+        "200":
+          description: Assistant answer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssistantAskResponse"
+
+  /compensation/calculate:
+    post:
+      operationId: calculateCompensation
+      tags: [compensation]
+      summary: Deterministic commission / bonus calculation for a customer
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompensationInput"
+      responses:
+        "200":
+          description: Full payout breakdown
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompensationResult"
+
+  /compensation/ask:
+    post:
+      operationId: askCompensation
+      tags: [compensation]
+      summary: Free-form compensation question answered by the Compensation AI
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompensationAskInput"
+      responses:
+        "200":
+          description: AI answer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompensationAskResponse"
+
+  /activity:
+    get:
+      operationId: getActivity
+      tags: [activity]
+      summary: Get the activity timeline for a lead or client
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: entityType
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: entityId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Activity log entries (newest first)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityLogEntry"
+
+  /goals/progress:
+    get:
+      operationId: getGoalProgress
+      tags: [goals]
+      summary: Monthly goal progress vs actuals (team for managers, personal otherwise)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: month
+          schema:
+            type: integer
+        - in: query
+          name: year
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Goal progress rows
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoalProgressResponse"
+
+  /goals:
+    put:
+      operationId: setGoal
+      tags: [goals]
+      summary: Set or update a team member's monthly goal (managers only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetGoalInput"
+      responses:
+        "200":
+          description: The saved goal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserGoal"
+
+  /notifications/alerts:
+    get:
+      operationId: getAlerts
+      tags: [notifications]
+      summary: Smart alerts for the current user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Alerts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AlertsResponse"
+
+  /notifications/summary/me:
+    post:
+      operationId: getMySummary
+      tags: [notifications]
+      summary: Generate the current user's AI daily summary (optionally email it)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SummaryRequest"
+      responses:
+        "200":
+          description: Daily summary + alerts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SummaryResponse"
+
+  /notifications/reminders/run:
+    post:
+      operationId: runReminders
+      tags: [notifications]
+      summary: Send daily reminder emails now (managers only)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Number of emails sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchSendResponse"
+
+  /notifications/summaries/run:
+    post:
+      operationId: runSummaries
+      tags: [notifications]
+      summary: Send daily summary emails to all users now (managers only)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Number of emails sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchSendResponse"
+
+  /automations:
+    get:
+      operationId: listAutomations
+      tags: [automations]
+      summary: List all automations with their most recent run (admin only)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Automations with last-run status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Automation"
+
+  /automations/{key}/run:
+    post:
+      operationId: runAutomation
+      tags: [automations]
+      summary: Run an automation now (admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The recorded automation run
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AutomationRun"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+
+    # ─── ACTIVITY / GOALS / NOTIFICATIONS ──────────────────────────────────────
+
+    AutomationRun:
+      type: object
+      required: [id, key, status, itemsAffected, ranAt]
+      properties:
+        id:
+          type: integer
+        key:
+          type: string
+        status:
+          type: string
+          enum: [success, error]
+        message:
+          type: ["string", "null"]
+        itemsAffected:
+          type: integer
+        ranAt:
+          type: string
+
+    Automation:
+      type: object
+      required: [key, name, description, trigger, schedule]
+      properties:
+        key:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        trigger:
+          type: string
+          enum: [schedule, event]
+        schedule:
+          type: string
+        lastRun:
+          oneOf:
+            - $ref: "#/components/schemas/AutomationRun"
+            - type: "null"
+
+    ActivityLogEntry:
+      type: object
+      required: [id, action, description, createdAt]
+      properties:
+        id:
+          type: integer
+        action:
+          type: string
+        description:
+          type: string
+        metadata:
+          type: ["object", "null"]
+          additionalProperties: true
+        userId:
+          type: ["integer", "null"]
+        userName:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    GoalActual:
+      type: object
+      required: [revenue, dealsWon, meetingsBooked, callsMade]
+      properties:
+        revenue:
+          type: number
+        dealsWon:
+          type: integer
+        meetingsBooked:
+          type: integer
+        callsMade:
+          type: integer
+
+    GoalTarget:
+      type: object
+      required: [targetRevenue, targetDealsWon, targetMeetingsBooked, targetCallsMade]
+      properties:
+        targetRevenue:
+          type: number
+        targetDealsWon:
+          type: integer
+        targetMeetingsBooked:
+          type: integer
+        targetCallsMade:
+          type: integer
+
+    GoalProgressRow:
+      type: object
+      required: [userId, userName, role, actual]
+      properties:
+        userId:
+          type: integer
+        userName:
+          type: string
+        role:
+          type: string
+        goal:
+          oneOf:
+            - $ref: "#/components/schemas/GoalTarget"
+            - type: "null"
+        actual:
+          $ref: "#/components/schemas/GoalActual"
+
+    GoalProgressResponse:
+      type: object
+      required: [month, year, scope, rows]
+      properties:
+        month:
+          type: integer
+        year:
+          type: integer
+        scope:
+          type: string
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/GoalProgressRow"
+
+    SetGoalInput:
+      type: object
+      required: [userId, month, year]
+      properties:
+        userId:
+          type: integer
+        month:
+          type: integer
+        year:
+          type: integer
+        targetRevenue:
+          type: number
+        targetDealsWon:
+          type: integer
+        targetMeetingsBooked:
+          type: integer
+        targetCallsMade:
+          type: integer
+
+    UserGoal:
+      type: object
+      required: [id, userId, month, year, targetRevenue, targetDealsWon, targetMeetingsBooked, targetCallsMade]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        month:
+          type: integer
+        year:
+          type: integer
+        targetRevenue:
+          type: string
+        targetDealsWon:
+          type: integer
+        targetMeetingsBooked:
+          type: integer
+        targetCallsMade:
+          type: integer
+        createdAt:
+          type: string
+
+    Alert:
+      type: object
+      required: [type, severity, message]
+      properties:
+        type:
+          type: string
+        severity:
+          type: string
+        message:
+          type: string
+        entityType:
+          type: string
+        entityId:
+          type: integer
+
+    AlertsResponse:
+      type: object
+      required: [alerts]
+      properties:
+        alerts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Alert"
+
+    SummaryRequest:
+      type: object
+      properties:
+        send:
+          type: boolean
+
+    SummaryResponse:
+      type: object
+      required: [summary, alerts, emailed]
+      properties:
+        summary:
+          type: string
+        alerts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Alert"
+        emailed:
+          type: boolean
+
+    BatchSendResponse:
+      type: object
+      required: [sent]
+      properties:
+        sent:
+          type: integer
+
+    # ─── AUTH ─────────────────────────────────────────────────────────────────
+
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      required: [token, user]
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+
+    # ─── USER ─────────────────────────────────────────────────────────────────
+
+    User:
+      type: object
+      required: [id, email, name, role]
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+          enum: [CEO, Admin, Marketing_Manager, Sales_Rep, Closer, IT_Manager, Employee]
+        slug:
+          type: ["string", "null"]
+        avatarUrl:
+          type: ["string", "null"]
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+
+    UserInput:
+      type: object
+      required: [email, name, role, password]
+      properties:
+        email:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+        password:
+          type: string
+        slug:
+          type: string
+
+    UserUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        role:
+          type: string
+        slug:
+          type: string
+        avatarUrl:
+          type: string
+        isActive:
+          type: boolean
+
+    # ─── COMPANY ──────────────────────────────────────────────────────────────
+
+    Company:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        industry:
+          type: ["string", "null"]
+        website:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    CompanyInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        industry:
+          type: string
+        website:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        notes:
+          type: string
+
+    CompanyUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        industry:
+          type: string
+        website:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        notes:
+          type: string
+
+    # ─── CLIENT ───────────────────────────────────────────────────────────────
+
+    Client:
+      type: object
+      required: [id, name, email]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: ["string", "null"]
+        companyId:
+          type: ["integer", "null"]
+        companyName:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [active, inactive, prospect]
+        monthlyRevenue:
+          type: ["number", "null"]
+        notes:
+          type: ["string", "null"]
+        ownerId:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+
+    ClientInput:
+      type: object
+      required: [name, email]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        companyId:
+          type: integer
+        status:
+          type: string
+        monthlyRevenue:
+          type: number
+        notes:
+          type: string
+        ownerId:
+          type: integer
+
+    ClientUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        companyId:
+          type: integer
+        status:
+          type: string
+        monthlyRevenue:
+          type: number
+        notes:
+          type: string
+        ownerId:
+          type: integer
+
+    # ─── LEAD ─────────────────────────────────────────────────────────────────
+
+    Lead:
+      type: object
+      required: [id, name, stage]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        companyId:
+          type: ["integer", "null"]
+        companyName:
+          type: ["string", "null"]
+        stage:
+          type: string
+          enum: [new, contacted, qualified, proposal, negotiation, closed_won, closed_lost]
+        source:
+          type: ["string", "null"]
+        ownerId:
+          type: ["integer", "null"]
+        ownerName:
+          type: ["string", "null"]
+        value:
+          type: ["number", "null"]
+        notes:
+          type: ["string", "null"]
+        linkedinUrl:
+          type: ["string", "null"]
+        industry:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [new_lead, contacted_email, contacted_call, contacted_linkedin, meeting_scheduled, meeting_done, proposal_sent, negotiating, closed_won, closed_lost, not_interested, nurturing]
+        aiScore:
+          type: ["integer", "null"]
+        scoreReason:
+          type: ["string", "null"]
+        priority:
+          type: ["string", "null"]
+          enum: [HOT, WARM, COLD, null]
+        aiNextAction:
+          type: ["string", "null"]
+        gtaNode:
+          type: ["integer", "null"]
+        activityType:
+          type: ["string", "null"]
+          enum: [email, call, meeting, linkedin_message, follow_up, null]
+        nextActionDate:
+          type: ["string", "null"]
+        meetingDate:
+          type: ["string", "null"]
+        emailsSent:
+          type: integer
+        emailsReceived:
+          type: integer
+        createdAt:
+          type: string
+
+    LeadInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        companyId:
+          type: integer
+        stage:
+          type: string
+        source:
+          type: string
+        ownerId:
+          type: integer
+        value:
+          type: number
+        notes:
+          type: string
+        linkedinUrl:
+          type: string
+        industry:
+          type: string
+        status:
+          type: string
+        gtaNode:
+          type: integer
+        activityType:
+          type: string
+        nextActionDate:
+          type: string
+        meetingDate:
+          type: string
+        emailsSent:
+          type: integer
+        emailsReceived:
+          type: integer
+
+    LeadUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        companyId:
+          type: integer
+        stage:
+          type: string
+        source:
+          type: string
+        ownerId:
+          type: integer
+        value:
+          type: number
+        notes:
+          type: string
+        linkedinUrl:
+          type: string
+        industry:
+          type: string
+        status:
+          type: string
+        gtaNode:
+          type: integer
+        activityType:
+          type: string
+        nextActionDate:
+          type: string
+        meetingDate:
+          type: string
+        emailsSent:
+          type: integer
+        emailsReceived:
+          type: integer
+
+    LogActivityInput:
+      type: object
+      required: [activityType]
+      properties:
+        activityType:
+          type: string
+          enum: [email, call, meeting, linkedin_message, follow_up]
+        notes:
+          type: string
+        status:
+          type: string
+        nextActionDate:
+          type: string
+
+    ScheduleMeetingInput:
+      type: object
+      required: [startTime, endTime]
+      properties:
+        title:
+          type: string
+        startTime:
+          type: string
+        endTime:
+          type: string
+        location:
+          type: string
+        onlineLink:
+          type: string
+        notes:
+          type: string
+
+    MarketingKpi:
+      type: object
+      required:
+        [
+          totalLeads,
+          newLeads,
+          hotLeads,
+          warmLeads,
+          coldLeads,
+          replyRate,
+          conversionRate,
+          meetingsScheduled,
+          meetingsDone,
+          proposalsSent,
+          closedWon,
+          closedLost,
+          pipelineValue,
+          closedWonValue,
+          emailsSent,
+          emailsReceived,
+          avgScore,
+          monthlyTarget,
+          monthlyClosedWon,
+          sourceBreakdown,
+        ]
+      properties:
+        totalLeads:
+          type: integer
+        newLeads:
+          type: integer
+        hotLeads:
+          type: integer
+        warmLeads:
+          type: integer
+        coldLeads:
+          type: integer
+        replyRate:
+          type: number
+        conversionRate:
+          type: number
+        meetingsScheduled:
+          type: integer
+        meetingsDone:
+          type: integer
+        proposalsSent:
+          type: integer
+        closedWon:
+          type: integer
+        closedLost:
+          type: integer
+        pipelineValue:
+          type: number
+        closedWonValue:
+          type: number
+        emailsSent:
+          type: integer
+        emailsReceived:
+          type: integer
+        avgScore:
+          type: number
+        monthlyTarget:
+          type: integer
+        monthlyClosedWon:
+          type: integer
+        sourceBreakdown:
+          type: array
+          items:
+            type: object
+            required: [source, count]
+            properties:
+              source:
+                type: string
+              count:
+                type: integer
+
+    MarketingReportInput:
+      type: object
+      properties:
+        email:
+          type: string
+
+    MarketingReport:
+      type: object
+      required: [report]
+      properties:
+        report:
+          type: string
+        emailed:
+          type: boolean
+
+    # ─── DEAL ─────────────────────────────────────────────────────────────────
+
+    Deal:
+      type: object
+      required: [id, title, stage]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        stage:
+          type: string
+          enum: [prospecting, qualification, proposal, negotiation, closed_won, closed_lost]
+        value:
+          type: ["number", "null"]
+        clientId:
+          type: ["integer", "null"]
+        clientName:
+          type: ["string", "null"]
+        companyId:
+          type: ["integer", "null"]
+        salesRepId:
+          type: ["integer", "null"]
+        salesRepName:
+          type: ["string", "null"]
+        closerId:
+          type: ["integer", "null"]
+        closerName:
+          type: ["string", "null"]
+        createdById:
+          type: ["integer", "null"]
+        commissionStatus:
+          type: string
+          enum: [pending, approved, paid, clawback]
+        clawbackStatus:
+          type: ["string", "null"]
+        grossMarginPercent:
+          type: ["string", "number", "null"]
+        submissionStatus:
+          type: string
+          enum: [draft, submitted, approved, rejected]
+        submittedAt:
+          type: ["string", "null"]
+        reviewedAt:
+          type: ["string", "null"]
+        reviewNotes:
+          type: ["string", "null"]
+        founderApprovalStatus:
+          type: string
+          enum: [not_required, pending, approved, rejected]
+        founderApproval:
+          type: boolean
+        expectedCloseDate:
+          type: ["string", "null"]
+        closedAt:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    DealInput:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+        stage:
+          type: string
+        value:
+          type: number
+        clientId:
+          type: integer
+        companyId:
+          type: integer
+        salesRepId:
+          type: integer
+        closerId:
+          type: integer
+        grossMarginPercent:
+          type: number
+        expectedCloseDate:
+          type: string
+        notes:
+          type: string
+
+    DealUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        stage:
+          type: string
+        value:
+          type: number
+        clientId:
+          type: integer
+        companyId:
+          type: integer
+        salesRepId:
+          type: integer
+        closerId:
+          type: integer
+        commissionStatus:
+          type: string
+        clawbackStatus:
+          type: string
+        grossMarginPercent:
+          type: number
+        expectedCloseDate:
+          type: string
+        closedAt:
+          type: string
+        notes:
+          type: string
+
+    DealReviewInput:
+      type: object
+      required: [approved]
+      properties:
+        approved:
+          type: boolean
+        notes:
+          type: string
+
+    FounderApprovalInput:
+      type: object
+      required: [approved]
+      properties:
+        approved:
+          type: boolean
+
+    ClawbackInput:
+      type: object
+      properties:
+        reason:
+          type: string
+
+    PipelineSummary:
+      type: object
+      required: [stages, totalValue, totalDeals]
+      properties:
+        stages:
+          type: array
+          items:
+            type: object
+            required: [stage, count, value]
+            properties:
+              stage:
+                type: string
+              count:
+                type: integer
+              value:
+                type: number
+        totalValue:
+          type: number
+        totalDeals:
+          type: integer
+
+    # ─── MEETING ──────────────────────────────────────────────────────────────
+
+    Meeting:
+      type: object
+      required: [id, title, startTime, endTime, status]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        clientName:
+          type: ["string", "null"]
+        clientEmail:
+          type: ["string", "null"]
+        companyName:
+          type: ["string", "null"]
+        location:
+          type: ["string", "null"]
+        onlineLink:
+          type: ["string", "null"]
+        startTime:
+          type: string
+        endTime:
+          type: string
+        status:
+          type: string
+          enum: [scheduled, completed, cancelled, no_show, follow_up]
+        outcome:
+          type: ["string", "null"]
+          enum: [won, lost, proposal_sent, follow_up_required, null]
+        attendees:
+          type: array
+          items:
+            $ref: "#/components/schemas/MeetingAttendee"
+        dealId:
+          type: ["integer", "null"]
+        leadId:
+          type: ["integer", "null"]
+        clientId:
+          type: ["integer", "null"]
+        ownerId:
+          type: ["integer", "null"]
+        ownerName:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    MeetingAttendee:
+      type: object
+      required: [userId, name]
+      properties:
+        userId:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+
+    MeetingInput:
+      type: object
+      required: [title, startTime, endTime]
+      properties:
+        title:
+          type: string
+        clientName:
+          type: string
+        companyName:
+          type: string
+        location:
+          type: string
+        onlineLink:
+          type: string
+        startTime:
+          type: string
+        endTime:
+          type: string
+        attendeeIds:
+          type: array
+          items:
+            type: integer
+        dealId:
+          type: integer
+        leadId:
+          type: integer
+        clientId:
+          type: integer
+        ownerId:
+          type: integer
+        notes:
+          type: string
+
+    MeetingUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        clientName:
+          type: string
+        companyName:
+          type: string
+        location:
+          type: string
+        onlineLink:
+          type: string
+        startTime:
+          type: string
+        endTime:
+          type: string
+        status:
+          type: string
+        outcome:
+          type: string
+        attendeeIds:
+          type: array
+          items:
+            type: integer
+        dealId:
+          type: integer
+        leadId:
+          type: integer
+        clientId:
+          type: integer
+        notes:
+          type: string
+
+    ConflictCheckInput:
+      type: object
+      required: [startTime, endTime, attendeeIds]
+      properties:
+        startTime:
+          type: string
+        endTime:
+          type: string
+        attendeeIds:
+          type: array
+          items:
+            type: integer
+        excludeMeetingId:
+          type: integer
+
+    ConflictCheckResult:
+      type: object
+      required: [hasConflict]
+      properties:
+        hasConflict:
+          type: boolean
+        conflicts:
+          type: array
+          items:
+            type: object
+            properties:
+              userId:
+                type: integer
+              userName:
+                type: string
+              conflictingMeetingId:
+                type: integer
+              conflictingMeetingTitle:
+                type: string
+              start:
+                type: string
+              end:
+                type: string
+
+    # ─── TASK ─────────────────────────────────────────────────────────────────
+
+    Task:
+      type: object
+      required: [id, title, status]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [pending, in_progress, completed, cancelled]
+        priority:
+          type: string
+          enum: [low, medium, high]
+        dueDate:
+          type: ["string", "null"]
+        assigneeId:
+          type: ["integer", "null"]
+        assigneeName:
+          type: ["string", "null"]
+        dealId:
+          type: ["integer", "null"]
+        meetingId:
+          type: ["integer", "null"]
+        responseNote:
+          type: ["string", "null"]
+          description: "Assignee's reply: progress update or reason the task isn't done"
+        createdAt:
+          type: string
+
+    TaskInput:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        priority:
+          type: string
+        dueDate:
+          type: string
+        assigneeId:
+          type: integer
+        dealId:
+          type: integer
+        meetingId:
+          type: integer
+
+    TaskUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        priority:
+          type: string
+        dueDate:
+          type: string
+        assigneeId:
+          type: integer
+        responseNote:
+          type: ["string", "null"]
+
+    # ─── KPI ──────────────────────────────────────────────────────────────────
+
+    KpiDashboard:
+      type: object
+      required: [totalMeetingsBooked, totalMeetingsCompleted, totalDealsWon, totalProposalsSent, closeRate, noShowRate, totalRevenue]
+      properties:
+        scope:
+          type: string
+          enum: [team, personal]
+          description: "team = company-wide view for managers; personal = the current user's own activity"
+        totalMeetingsBooked:
+          type: integer
+        totalMeetingsCompleted:
+          type: integer
+        totalFollowUpsCompleted:
+          type: integer
+        totalDealsWon:
+          type: integer
+        totalProposalsSent:
+          type: integer
+        closeRate:
+          type: number
+        noShowRate:
+          type: number
+        totalRevenue:
+          type: number
+        topPerformers:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserKpi"
+
+    UserKpi:
+      type: object
+      required: [userId, userName, meetingsBooked, meetingsCompleted, dealsWon, closeRate]
+      properties:
+        userId:
+          type: integer
+        userName:
+          type: string
+        meetingsBooked:
+          type: integer
+        meetingsCompleted:
+          type: integer
+        followUpsCompleted:
+          type: integer
+        dealsWon:
+          type: integer
+        proposalsSent:
+          type: integer
+        closeRate:
+          type: number
+        noShowRate:
+          type: number
+        totalRevenue:
+          type: number
+
+    KpiReport:
+      type: object
+      required: [id, userId, reportDate]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        userName:
+          type: ["string", "null"]
+        reportDate:
+          type: string
+        callsMade:
+          type: integer
+        emailsSent:
+          type: integer
+        meetingsBooked:
+          type: integer
+        meetingsCompleted:
+          type: integer
+        proposalsSent:
+          type: integer
+        dealsWon:
+          type: integer
+        revenue:
+          type: number
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    KpiReportInput:
+      type: object
+      required: [reportDate]
+      properties:
+        reportDate:
+          type: string
+        callsMade:
+          type: integer
+        emailsSent:
+          type: integer
+        meetingsBooked:
+          type: integer
+        meetingsCompleted:
+          type: integer
+        proposalsSent:
+          type: integer
+        dealsWon:
+          type: integer
+        revenue:
+          type: number
+        notes:
+          type: string
+
+    # ─── BOOKING ──────────────────────────────────────────────────────────────
+
+    AvailabilityResponse:
+      type: object
+      required: [slots]
+      properties:
+        slots:
+          type: array
+          items:
+            type: object
+            required: [start, end, available]
+            properties:
+              start:
+                type: string
+              end:
+                type: string
+              available:
+                type: boolean
+
+    BookingInput:
+      type: object
+      required: [clientName, clientEmail, startTime, endTime]
+      properties:
+        clientName:
+          type: string
+        clientEmail:
+          type: string
+        startTime:
+          type: string
+        endTime:
+          type: string
+        notes:
+          type: string
+
+    # ─── PAYROLL ──────────────────────────────────────────────────────────────
+
+    PayrollRecord:
+      type: object
+      required: [id, userId, periodMonth, periodYear, totalAmount, status, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        userName:
+          type: ["string", "null"]
+        userRole:
+          type: ["string", "null"]
+        periodMonth:
+          type: integer
+        periodYear:
+          type: integer
+        baseBonus:
+          type: string
+        commissionBonus:
+          type: string
+        leadGeneratorBonus:
+          type: string
+        performanceBonus:
+          type: string
+        strategicBonus:
+          type: string
+        totalAmount:
+          type: string
+        aiScore:
+          type: ["integer", "null"]
+        aiAnalysis:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [draft, pending_approval, approved, paid, rejected]
+        managerId:
+          type: ["integer", "null"]
+        managerNotes:
+          type: ["string", "null"]
+        submittedAt:
+          type: ["string", "null"]
+        approvedAt:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    PayrollCalculateInput:
+      type: object
+      required: [periodMonth, periodYear]
+      properties:
+        userId:
+          type: integer
+        periodMonth:
+          type: integer
+        periodYear:
+          type: integer
+
+    PayrollApproveInput:
+      type: object
+      properties:
+        managerNotes:
+          type: string
+        strategicBonus:
+          type: number
+
+    PayrollRejectInput:
+      type: object
+      properties:
+        managerNotes:
+          type: string
+
+    BookingRequest:
+      type: object
+      required: [id, title, startTime, endTime, status, source, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        clientName:
+          type: ["string", "null"]
+        clientEmail:
+          type: ["string", "null"]
+        startTime:
+          type: string
+        endTime:
+          type: string
+        status:
+          type: string
+        source:
+          type: string
+        ownerId:
+          type: ["integer", "null"]
+        ownerName:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    BookingAssignInput:
+      type: object
+      required: [assignedUserId]
+      properties:
+        assignedUserId:
+          type: integer
+
+    AssistantAskInput:
+      type: object
+      required: [question]
+      properties:
+        question:
+          type: string
+          description: The user's natural-language question about their CRM data
+
+    AssistantAskResponse:
+      type: object
+      required: [answer, scope]
+      properties:
+        answer:
+          type: string
+          description: The assistant's natural-language answer
+        scope:
+          type: string
+          enum: [team, personal]
+          description: Whether the answer was computed over team-wide or personal data
+
+    CompensationGates:
+      type: object
+      required:
+        [firstOrder, crmVerified, invoicePaid, noDispute, nodeCompliance, leadSourceLogged]
+      properties:
+        firstOrder:
+          type: boolean
+        crmVerified:
+          type: boolean
+        invoicePaid:
+          type: boolean
+        noDispute:
+          type: boolean
+        nodeCompliance:
+          type: boolean
+        leadSourceLogged:
+          type: boolean
+
+    CompensationInput:
+      type: object
+      required: [monthlyRevenue, scenario, gates]
+      properties:
+        customerName:
+          type: string
+        monthlyRevenue:
+          type: number
+          description: First month's customer revenue (USD)
+        scenario:
+          type: string
+          enum: [A, B, C, D]
+        leadGenerator:
+          type: string
+          enum: [Arshia, Shayan, none]
+        fieldSalesPerson:
+          type: string
+        closerPerson:
+          type: string
+        newCustomersThisMonth:
+          type: integer
+          description: Customers this lead-gen activated this month (monthly performance bonus)
+        strategicType:
+          type: string
+          enum: [none, over_10k, multi_branch, long_term]
+        founderApproved:
+          type: boolean
+        gates:
+          $ref: "#/components/schemas/CompensationGates"
+
+    CompensationPayoutLine:
+      type: object
+      required: [role, person, amount, status, basis]
+      properties:
+        role:
+          type: string
+        person:
+          type: string
+        amount:
+          type: number
+        status:
+          type: string
+          enum: [confirmed, pending, blocked]
+        basis:
+          type: string
+
+    CompensationGateResult:
+      type: object
+      required: [gate, passed]
+      properties:
+        gate:
+          type: string
+        passed:
+          type: boolean
+
+    CompensationResult:
+      type: object
+      required:
+        [
+          customerName,
+          monthlyRevenue,
+          sizeLabel,
+          commissionRate,
+          commissionPool,
+          scenario,
+          payouts,
+          totalAcquisitionCost,
+          pendingTotal,
+          operationalProfit,
+          acquisitionPctOfProfit,
+          companyNetProfit,
+          blocked,
+          gateResults,
+          flags,
+        ]
+      properties:
+        customerName:
+          type: string
+        monthlyRevenue:
+          type: number
+        sizeLabel:
+          type: string
+        commissionRate:
+          type: number
+        commissionPool:
+          type: number
+        scenario:
+          type: string
+          enum: [A, B, C, D]
+        payouts:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompensationPayoutLine"
+        totalAcquisitionCost:
+          type: number
+        pendingTotal:
+          type: number
+        operationalProfit:
+          type: number
+        acquisitionPctOfProfit:
+          type: number
+        companyNetProfit:
+          type: number
+        blocked:
+          type: boolean
+        gateResults:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompensationGateResult"
+        flags:
+          type: array
+          items:
+            type: string
+
+    CompensationAskInput:
+      type: object
+      required: [question]
+      properties:
+        question:
+          type: string
+          description: Free-form compensation question (Farsi/Finglish or English)
+
+    CompensationAskResponse:
+      type: object
+      required: [answer]
+      properties:
+        answer:
+          type: string
+          description: The Compensation AI's natural-language answer

@@ -1,0 +1,32 @@
+Build the Dashboard page for Topping CRM exactly matching this design. Keep all existing colors unchanged — do not modify any color variables or theme.
+
+Layout: two-column grid with a 188px dark sidebar (bg-secondary) and a main content area.
+
+Sidebar:
+- Brand name "Topping CRM" + subtitle "Business OS"
+- Nav sections: Main (Dashboard active, KPI, Leads, Pipeline), Management (Calendar, Payroll, Bonus, AI), Team (Members, Settings)
+- Footer: avatar initials circle + name + role
+
+Main content (padding 1.125rem, flex column, gap 10px):
+- Topbar: page title "داشبورد" + month selector button + "+ لید جدید" button
+- 4 metric cards in a row (bg-secondary, border-radius-md): جلسات, Deal های بسته, نرخ تبدیل, درآمد — each with a label, large number, and trend indicator (green ↑ / red ↓)
+- Revenue chart card (full width): mixed bar + line chart using Chart.js 4.4.1
+  - Bars: monthly revenue (blue #378ADD)
+  - Line: monthly target (green #1D9E75, circle points)
+  - 6 months: Jan–Jun data
+  - Custom HTML legend above canvas (no Chart.js default legend)
+  - Y-axis formatter: $XXK
+- Two-column row:
+  - Left card: Team performance radar chart (4 members: Shayan #378ADD, Arshia #1D9E75 triangle, Sarah #EF9F27 rect, Mike #888780 cross) across 5 axes: لیدها, جلسات, Deal, بونس, KPI
+  - Right card: Recent leads list — 4 rows with company name, owner + node, and a status badge (info/warning/success/danger)
+- Node distribution line chart (full width): two lines (Arshia nodes 1-2 in blue, Shayan nodes 3-5 in green with triangle points) over 6 months
+
+Chart rules:
+- Load Chart.js from cdnjs: https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js
+- All canvases wrapped in position:relative div with explicit height
+- plugins.legend.display: false on all charts — use custom HTML legends instead
+- Each series uses a different pointStyle so color-blind users can distinguish them
+- Grid lines: rgba(136,135,128,.15), axis ticks color #888780, font-size 11px
+- x-axis: grid display false, autoSkip false
+
+Do NOT change any color tokens, CSS variables, sidebar style, or any other page. Only add this Dashboard page component.

@@ -1,0 +1,215 @@
+# آنالیز Persian Review CRM — Topping Courier
+> بررسی کامل پروژه Replit | ژوئن ۲۰۲۶
+
+---
+
+## ۱. خلاصه وضعیت
+
+این پروژه یه CRM واقعی با معماری حرفه‌ایه — pnpm workspaces، OpenAPI codegen، Drizzle ORM، shadcn/ui. Replit Agent کار خوبی کرده اما **۷ مشکل مهم** داره که برای production باید رفع بشه.
+
+**امتیاز کلی: ۷.۲/۱۰**
+
+---
+
+## ۲. نقاط قوت
+
+### ✅ معماری monorepo درست
+- `lib/db`, `lib/api-spec`, `lib/api-client-react`, `artifacts/api-server`, `artifacts/topping-crm` — جداسازی درست
+- OpenAPI spec به عنوان source of truth → Orval codegen → React Query hooks. خیلی حرفه‌ای.
+
+### ✅ Auth امن
+- JWT با `kind` claim — token confusion attack رفع شده
+- `requireAuth` هر request رول رو از DB می‌خونه، نه از JWT
+- Reset link از `APP_BASE_URL` می‌آد، نه از `Origin` header
+
+### ✅ Role-based access واقعی
+- Dashboard scope: مدیر → کل تیم، کارمند → فقط خودش
+- `/kpi/user/:userId` برای non-manager بلاک شده (IDOR رفع شده)
+- Leads: هر کس فقط lead خودش رو می‌بینه
+
+### ✅ Compensation Engine کامل
+- سه‌تیری: Hard gates → Marketing gates → Founder approval
+- نرخ‌ها با سند Topping v2 تطابق دارد
+- `pendingTotal` جدا از `totalAcquisitionCost`
+
+### ✅ Activity log درست
+- هر action با `logActivity` ثبت می‌شه
+
+---
+
+## ۳. مشکلات بحرانی
+
+### 🔴 ۳.۱ JWT در localStorage — XSS آسیب‌پذیر
+```typescript
+// artifacts/topping-crm/src/lib/auth.tsx
+localStorage.setItem('crm_token', token)
+```
+**مشکل:** اگه هر XSS وجود داشته باشه، token قابل سرقته. CRM داده مالی داره.
+
+**رفع:**
+```typescript
+// backend: httpOnly cookie
+res.cookie('crm_token', token, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict',
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+});
+// frontend: credentials: 'include' در fetch
+```
+
+### 🔴 ۳.۲ Deals endpoint بدون access control
+```typescript
+// artifacts/api-server/src/routes/deals.ts
+router.get("/deals", requireAuth, async (_req, res) => {
+  // هیچ فیلتری بر اساس userId نداره!
+  const deals = await db.select()...from(dealsTable)...
+  res.json(deals);
+});
+```
+**مشکل:** هر authenticated user می‌تونه تمام deal‌های شرکت رو ببینه — IDOR جدی.
+
+**رفع:**
+```typescript
+router.get("/deals", requireAuth, async (req, res) => {
+  const { userId, role } = req.user!;
+  const where = isManager(role)
+    ? undefined
+    : or(eq(dealsTable.salesRepId, userId), eq(dealsTable.closerId, userId));
+  const deals = await db.select()...from(dealsTable).where(where)...
+});
+```
+
+### 🔴 ۳.۳ `POST /auth/register` role رو از client می‌گیره
+```typescript
+// در agent memory ذکر شده: "self-service registration lets the user pick their own role"
+```
+**مشکل:** هر کسی می‌تونه با role=CEO ثبت‌نام کنه. حتی اگه "product decision" باشه، خطرناکه.
+
+**رفع ساده:**
+```typescript
+router.post("/auth/register", async (req, res) => {
+  const { name, email, password } = req.body;
+  // role را از client نمی‌گیریم — همیشه Employee
+  const role = "Employee";
+  ...
+});
+```
+CEO/Admin رو فقط از Admin panel اضافه می‌کنن.
+
+### 🔴 ۳.۴ JWT_SECRET پیش‌فرض hardcode شده
+```typescript
+const JWT_SECRET = process.env.JWT_SECRET || "topping-crm-secret-2024";
+```
+**مشکل:** اگه `.env` ست نشه، سرور با کلید شناخته‌شده کار می‌کنه.
+
+**رفع:**
+```typescript
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) throw new Error("JWT_SECRET env var is required");
+```
+
+---
+
+## ۴. مشکلات مهم
+
+### 🟠 ۴.۱ Pipeline `/deals/pipeline` برای همه باز است
+```typescript
+router.get("/deals/pipeline", requireAuth, async (_req, res) => {
+  // هیچ scope ای نداره — aggregate کل deals شرکت رو نشون میده
+```
+کارمند Sales_Rep باید فقط pipeline خودش رو ببینه.
+
+### 🟠 ۴.۲ Input validation ضعیف در routes
+اکثر route ها body رو مستقیم از `req.body` می‌گیرن:
+```typescript
+const { name, email, phone, companyId, stage, source, value, notes } = req.body;
+await db.insert(leadsTable).values({ name, email, ... });
+```
+OpenAPI spec و Zod schema وجود داره اما در route ها استفاده نمی‌شه. باید Zod schema رو در routes هم validate کرد:
+```typescript
+import { insertLeadSchema } from "@workspace/db";
+const parsed = insertLeadSchema.safeParse(req.body);
+if (!parsed.success) return res.status(400).json({ error: parsed.error });
+```
+
+### 🟠 ۴.۳ Error handling بدون sanitization
+```typescript
+} catch (err) {
+  res.status(500).json({ error: (err as Error).message });
+}
+```
+Database error messages می‌تونن schema info leak بدن. باید generic message داد:
+```typescript
+} catch (err) {
+  console.error(err);
+  res.status(500).json({ error: "Internal server error" });
+}
+```
+
+### 🟠 ۴.۴ Rate limiting وجود نداره
+`POST /auth/login` هیچ rate limit نداره — brute force امکانپذیره. باید `express-rate-limit` اضافه بشه.
+
+### 🟠 ۴.۵ Scheduler در‌process — production نیاز به Reserved VM داره
+```
+// از agent memory: "cron scheduler is in-process (needs Reserved VM in prod)"
+```
+اگه روی Replit Autoscale باشه، scheduler کار نمی‌کنه. باید در production از Replit Reserved VM یا یه cron service خارجی استفاده بشه.
+
+---
+
+## ۵. مشکلات متوسط
+
+### 🟡 ۵.۱ Pagination نداره
+تمام list endpoints بدون `limit/offset` همه رکوردها رو برمی‌گردونن. با رشد داده کند می‌شه.
+
+### 🟡 ۵.۲ `slug` کاربر auto-generate نمی‌شه
+```typescript
+slug: text("slug").unique(),  // nullable — اگه null باشه booking کار نمی‌کنه
+```
+باید در `POST /auth/register` از email یا name به صورت خودکار slug ساخته بشه.
+
+### 🟡 ۵.۳ Google Sign-in token در frontend ذخیره‌سازی
+همان مشکل localStorage برای Google OAuth هم وجود داره.
+
+### 🟡 ۵.۴ `MANAGER_ROLES` در چند فایل تکرار شده
+```typescript
+// در leads.ts, deals.ts, kpi.ts هر کدام جداگانه تعریف کردن
+const MANAGER_ROLES = ["CEO", "Admin", "Marketing_Manager"];
+```
+باید به یه فایل مشترک منتقل بشه تا inconsistency نشه.
+
+---
+
+## ۶. چک‌لیست اقدام
+
+### فوری (قبل از production)
+| # | کار | فایل |
+|---|---|---|
+| 1 | JWT → httpOnly cookie | `auth.ts` + `auth.tsx` |
+| 2 | Deals endpoint scoping | `routes/deals.ts` |
+| 3 | Register role fixed به Employee | `routes/auth.ts` |
+| 4 | JWT_SECRET بدون default | `middlewares/auth.ts` |
+| 5 | Rate limit روی login | `app.ts` |
+
+### این هفته
+| # | کار | فایل |
+|---|---|---|
+| 6 | Zod validation در تمام routes | همه routes |
+| 7 | Error sanitization | همه routes |
+| 8 | Pipeline scope per user | `routes/deals.ts` |
+| 9 | MANAGER_ROLES در یه فایل مشترک | `lib/utils.ts` |
+| 10 | Slug auto-generate | `routes/auth.ts` |
+
+### بعداً
+| # | کار |
+|---|---|
+| 11 | Pagination در list endpoints |
+| 12 | Reserved VM برای scheduler |
+| 13 | Test برای compensation engine |
+
+---
+
+## ۷. جمع‌بندی
+
+این پروژه شالوده محکمی داره — معماری monorepo، codegen، role-based access، و compensation engine درست پیاده‌سازی شدن. **اما ۴ مشکل بحرانی (JWT در localStorage، deals بدون scope، register با role آزاد، JWT_SECRET hardcode) باید قبل از هر launch رفع بشن.** با رفع اینها پروژه آماده production می‌شه.

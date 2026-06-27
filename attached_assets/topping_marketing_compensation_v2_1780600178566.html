@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Case Study | مدل درآمدی تیم مارکتینگ Topping Courier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #06101e;
+  --card: #0d1e35;
+  --card2: #112240;
+  --border: rgba(255,255,255,.09);
+  --border2: rgba(255,255,255,.16);
+  --text: #ddeeff;
+  --muted: #8faabf;
+  --gold: #f2c14e;
+  --gold2: #ffd97a;
+  --blue: #4ab3ff;
+  --blue2: #7ecfff;
+  --green: #2edb8a;
+  --red: #ff5c7a;
+  --purple: #b39dfa;
+  --teal: #38e0c8;
+  --arshia: #f86c9e;
+  --shayan: #4ab3ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body {
+  font-family:'Vazirmatn',Tahoma,sans-serif;
+  background: #06101e;
+  color: var(--text);
+  line-height: 1.9;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* ── BG mesh ── */
+body::before {
+  content:'';
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 15% 0%, rgba(36,90,190,.22) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 85% 100%, rgba(248,108,158,.12) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(14,30,56,.9) 0%, transparent 80%);
+  pointer-events:none;z-index:0;
+}
+
+.page {max-width:1100px;margin:auto;padding:32px 24px;position:relative;z-index:1}
+
+/* ── NAV ── */
+nav {
+  display:flex;gap:8px;flex-wrap:wrap;
+  padding:14px 20px;
+  background:rgba(13,30,53,.75);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:100;
+  justify-content:center;
+}
+nav a {
+  color:var(--muted);font-size:12px;font-weight:700;
+  text-decoration:none;padding:5px 12px;border-radius:999px;
+  border:1px solid transparent;transition:.2s;
+}
+nav a:hover {color:#fff;border-color:var(--border2);background:rgba(255,255,255,.06)}
+
+/* ── HERO ── */
+.hero {
+  padding: 52px 48px;
+  border-radius: 28px;
+  border: 1px solid var(--border2);
+  background: linear-gradient(135deg, rgba(36,90,190,.18), rgba(242,193,78,.08) 60%, rgba(248,108,158,.08));
+  box-shadow: 0 32px 90px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.07);
+  margin-bottom: 28px;
+  position:relative;overflow:hidden;
+}
+.hero::after {
+  content:'TC';
+  position:absolute;left:-10px;bottom:-30px;
+  font-size:200px;font-weight:900;
+  color:rgba(255,255,255,.025);
+  line-height:1;pointer-events:none;
+  letter-spacing:-8px;
+}
+.badge {
+  display:inline-flex;align-items:center;gap:7px;
+  padding:6px 16px;border-radius:999px;
+  background:rgba(242,193,78,.12);
+  color:var(--gold);border:1px solid rgba(242,193,78,.3);
+  font-weight:800;font-size:12px;margin-bottom:18px;
+  letter-spacing:.4px;
+}
+.badge::before{content:'●';font-size:8px;opacity:.7}
+h1 {font-size:36px;font-weight:900;line-height:1.2;margin-bottom:14px;letter-spacing:-.5px}
+h1 span{color:var(--gold)}
+.lead{font-size:17px;color:#c8e0f8;max-width:820px;line-height:1.85}
+.hero-meta{display:flex;gap:20px;flex-wrap:wrap;margin-top:24px}
+.hero-meta span{
+  font-size:12px;color:var(--muted);
+  border:1px solid var(--border);
+  padding:5px 14px;border-radius:999px;
+}
+
+/* ── SECTION TITLE ── */
+.sec-title {
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:18px;
+}
+.sec-num {
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,rgba(74,179,255,.3),rgba(74,179,255,.1));
+  border:1px solid rgba(74,179,255,.35);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:14px;color:var(--blue2);flex-shrink:0;
+}
+h2{font-size:21px;font-weight:800;color:#fff}
+h3{font-size:16px;font-weight:700;color:var(--gold);margin:18px 0 10px}
+
+/* ── CARDS ── */
+.card {
+  background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.02));
+  border:1px solid var(--border);
+  border-radius:22px;
+  padding:28px;
+  box-shadow:0 12px 40px rgba(0,0,0,.25);
+  transition:border-color .2s;
+}
+.card:hover{border-color:var(--border2)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:18px 0}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:18px 0}
+.full{grid-column:1/-1;margin:18px 0}
+
+/* ── QUOTE ── */
+.quote {
+  border-right:3px solid var(--gold);
+  background:rgba(242,193,78,.07);
+  padding:16px 20px;border-radius:14px;
+  color:#fff;font-weight:700;font-size:15px;margin:16px 0;
+  line-height:1.7;
+}
+
+/* ── PILLS ── */
+.pill {
+  display:inline-flex;align-items:center;gap:5px;
+  margin:4px;padding:5px 13px;border-radius:999px;
+  font-size:12px;font-weight:800;
+}
+.pill-blue{background:rgba(74,179,255,.12);border:1px solid rgba(74,179,255,.28);color:#a8daff}
+.pill-gold{background:rgba(242,193,78,.12);border:1px solid rgba(242,193,78,.28);color:#ffe9a0}
+.pill-green{background:rgba(46,219,138,.10);border:1px solid rgba(46,219,138,.25);color:#a0ffd5}
+.pill-pink{background:rgba(248,108,158,.12);border:1px solid rgba(248,108,158,.28);color:#ffb8d4}
+.pill-purple{background:rgba(179,157,250,.12);border:1px solid rgba(179,157,250,.28);color:#d4caff}
+
+/* ── TABLES ── */
+table{width:100%;border-collapse:collapse;margin-top:12px;border-radius:14px;overflow:hidden}
+th,td{border:1px solid var(--border);padding:13px 14px;text-align:right;vertical-align:top;font-size:14px}
+th{background:rgba(74,179,255,.13);color:#d0eeff;font-weight:800;font-size:13px}
+td{color:var(--muted);background:rgba(255,255,255,.018)}
+tr:hover td{background:rgba(255,255,255,.04);color:var(--text)}
+.ok{color:var(--green);font-weight:800}
+.warn{color:var(--gold);font-weight:800}
+.danger{color:var(--red);font-weight:800}
+.purple{color:var(--purple);font-weight:800}
+
+/* ── NOTES ── */
+.note {
+  background:rgba(46,219,138,.07);
+  border:1px solid rgba(46,219,138,.2);
+  border-radius:14px;padding:15px 18px;margin:14px 0;
+  color:#c8ffe0;font-size:14px;line-height:1.7;
+}
+.warning {
+  background:rgba(255,92,122,.07);
+  border:1px solid rgba(255,92,122,.22);
+  border-radius:14px;padding:15px 18px;margin:14px 0;
+  color:#ffd5dd;font-size:14px;
+}
+.info {
+  background:rgba(74,179,255,.07);
+  border:1px solid rgba(74,179,255,.2);
+  border-radius:14px;padding:15px 18px;margin:14px 0;
+  color:#cce8ff;font-size:14px;
+}
+
+p{color:var(--muted);font-size:14px;line-height:1.85;margin:8px 0}
+ul{padding-right:18px;margin:8px 0}
+li{color:var(--muted);font-size:14px;margin:8px 0;line-height:1.7}
+strong{color:#fff}
+
+/* ── ROLE CARDS ── */
+.role-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:16px 0}
+.role-card{
+  padding:18px;border-radius:16px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.03);
+}
+.role-card .role-icon{font-size:26px;margin-bottom:8px}
+.role-card h4{font-size:14px;font-weight:800;color:#fff;margin-bottom:6px}
+.role-card p{font-size:13px;margin:0}
+.arshia-card{border-color:rgba(248,108,158,.3);background:rgba(248,108,158,.06)}
+.shayan-card{border-color:rgba(74,179,255,.3);background:rgba(74,179,255,.06)}
+.field-card{border-color:rgba(242,193,78,.3);background:rgba(242,193,78,.06)}
+.closer-card{border-color:rgba(179,157,250,.3);background:rgba(179,157,250,.06)}
+
+/* ── NODE MAP ── */
+.node-section{margin:18px 0}
+.node-header{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:16px;
+}
+.node-owner{
+  padding:4px 14px;border-radius:999px;
+  font-size:12px;font-weight:800;
+}
+.arshia-owner{background:rgba(248,108,158,.15);border:1px solid rgba(248,108,158,.35);color:var(--arshia)}
+.shayan-owner{background:rgba(74,179,255,.15);border:1px solid rgba(74,179,255,.35);color:var(--shayan)}
+
+.node-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:14px}
+.node-card{
+  padding:18px 20px;border-radius:16px;
+  border-width:1px;border-style:solid;
+  position:relative;
+}
+.node-card.arshia{border-color:rgba(248,108,158,.3);background:linear-gradient(135deg,rgba(248,108,158,.08),rgba(248,108,158,.03))}
+.node-card.shayan{border-color:rgba(74,179,255,.25);background:linear-gradient(135deg,rgba(74,179,255,.07),rgba(74,179,255,.02))}
+.node-num{
+  position:absolute;top:14px;left:16px;
+  width:28px;height:28px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:900;
+}
+.arshia .node-num{background:rgba(248,108,158,.2);color:var(--arshia)}
+.shayan .node-num{background:rgba(74,179,255,.2);color:var(--shayan)}
+.node-card h4{font-size:14px;font-weight:800;color:#fff;margin-bottom:5px;padding-left:36px}
+.node-card .node-areas{font-size:12px;color:var(--muted);margin-bottom:8px;padding-left:36px}
+.node-tags{display:flex;flex-wrap:wrap;gap:4px;padding-left:36px}
+.node-tag{
+  font-size:11px;padding:3px 9px;border-radius:999px;font-weight:700;
+}
+.arshia .node-tag{background:rgba(248,108,158,.12);color:#ffb3cc}
+.shayan .node-tag{background:rgba(74,179,255,.12);color:#a8daff}
+
+.node-rule{
+  background:rgba(255,255,255,.03);
+  border:1px dashed rgba(255,255,255,.15);
+  border-radius:14px;padding:16px 20px;margin-top:8px;
+}
+.node-rule h4{font-size:13px;font-weight:800;color:#fff;margin-bottom:10px}
+.node-rule-row{display:flex;align-items:flex-start;gap:10px;margin:7px 0;font-size:13px}
+.dot-a{color:var(--arshia)}
+.dot-s{color:var(--shayan)}
+
+/* ── SCENARIO CARDS ── */
+.scenario-list{display:flex;flex-direction:column;gap:14px;margin-top:14px}
+.scenario{
+  padding:18px 20px;border-radius:16px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.025);
+  display:grid;grid-template-columns:1fr auto;gap:14px;align-items:start;
+}
+.scenario-title{font-size:14px;font-weight:700;color:#ddeeff;margin-bottom:8px}
+.pay-row{display:flex;gap:8px;flex-wrap:wrap}
+.pay-chip{
+  font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px;
+}
+.pay-chip.p{background:rgba(248,108,158,.12);border:1px solid rgba(248,108,158,.25);color:#ffb3cc}
+.pay-chip.g{background:rgba(242,193,78,.12);border:1px solid rgba(242,193,78,.25);color:#ffe9a0}
+.pay-chip.c{background:rgba(179,157,250,.12);border:1px solid rgba(179,157,250,.25);color:#d4caff}
+.pay-chip.none{background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--muted)}
+.scenario-total{
+  font-size:13px;font-weight:800;color:var(--green);
+  white-space:nowrap;
+  background:rgba(46,219,138,.08);border:1px solid rgba(46,219,138,.2);
+  padding:6px 14px;border-radius:999px;
+  align-self:center;
+}
+
+/* ── EXAMPLE ── */
+.example-flow{
+  display:flex;align-items:center;gap:0;
+  margin:18px 0;flex-wrap:wrap;
+}
+.ex-step{
+  flex:1;min-width:140px;
+  padding:14px 16px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border);
+  border-radius:14px;
+  text-align:center;
+  font-size:12px;color:var(--muted);
+  position:relative;
+}
+.ex-step strong{display:block;font-size:14px;color:#fff;margin-bottom:4px}
+.ex-step .ex-amt{
+  display:inline-block;margin-top:6px;
+  font-size:15px;font-weight:900;color:var(--green);
+}
+.ex-arrow{
+  font-size:20px;color:var(--border2);
+  padding:0 6px;flex-shrink:0;
+}
+.ex-total-box{
+  background:linear-gradient(135deg,rgba(46,219,138,.12),rgba(46,219,138,.05));
+  border:1px solid rgba(46,219,138,.25);
+  border-radius:18px;padding:20px 24px;
+  margin-top:16px;display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:14px;
+}
+.ex-total-box .label{font-size:14px;font-weight:700;color:#c0f5dc}
+.ex-total-box .amount{font-size:28px;font-weight:900;color:var(--green)}
+.ex-total-box .pct{font-size:13px;color:var(--muted)}
+
+/* ── RULES LIST ── */
+.rules-list{list-style:none;padding:0;margin:14px 0}
+.rules-list li{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:10px 14px;border-radius:10px;
+  margin:6px 0;
+  background:rgba(255,255,255,.025);
+  border:1px solid var(--border);
+  font-size:14px;
+}
+.rules-list li::before{
+  content:'✕';color:var(--red);font-weight:900;font-size:13px;
+  margin-top:2px;flex-shrink:0;
+}
+.rules-list.ok-list li::before{content:'✓';color:var(--green)}
+
+/* ── SUMMARY STATS ── */
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:16px 0}
+.stat{
+  padding:20px;border-radius:16px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.03);
+  text-align:center;
+}
+.stat .num{font-size:32px;font-weight:900;line-height:1;margin-bottom:4px}
+.stat .lbl{font-size:12px;color:var(--muted);font-weight:600}
+
+/* ── FOOTER ── */
+.footer{
+  text-align:center;color:#567890;font-size:12px;
+  margin:40px 0 16px;padding:20px;
+  border-top:1px solid var(--border);
+}
+
+@media(max-width:820px){
+  body{font-size:14px}
+  .hero{padding:28px 22px}
+  h1{font-size:26px}
+  .grid,.grid3,.role-grid,.node-grid,.stat-grid{grid-template-columns:1fr}
+  .full{margin:12px 0}
+  .example-flow{flex-direction:column;align-items:stretch}
+  .ex-arrow{transform:rotate(90deg);text-align:center}
+  .scenario{grid-template-columns:1fr}
+}
+@media print{
+  body{background:#fff;color:#111;padding:0}
+  .hero,.card{box-shadow:none;border-color:#ddd}
+  nav{display:none}
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.card,.hero{animation:fadeUp .5s ease both}
+.card:nth-child(2){animation-delay:.07s}
+.card:nth-child(3){animation-delay:.12s}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#roles">نقش‌ها</a>
+  <a href="#commission">کمیسیون فروش</a>
+  <a href="#bonus">بونس لید</a>
+  <a href="#nodes">نودبندی GTA</a>
+  <a href="#scenarios">سناریوها</a>
+  <a href="#example">مثال کامل</a>
+  <a href="#rules">قوانین</a>
+</nav>
+
+<div class="page">
+
+<!-- HERO -->
+<section class="hero">
+  <div class="badge">Topping Courier · Internal Compensation Case Study · 2026</div>
+  <h1>مدل درآمدی و کمیسیون<br>تیم مارکتینگ <span>Topping Courier</span></h1>
+  <p class="lead">این سند مدل پرداخت منصفانه، نودبندی جغرافیایی GTA و قوانین کنترل تداخل لید را برای تیم مارکتینگ تنظیم می‌کند. همه پرداخت‌ها بر اساس خروجی واقعی، مشتری فعال‌شده، و منبع شفاف لید در CRM انجام می‌شود.</p>
+  <div class="hero-meta">
+    <span>Same-Day Delivery</span>
+    <span>کمیسیون راننده: ۶۰٪</span>
+    <span>سقف کمیسیون: ۵٪</span>
+    <span>GTA: ۵ نود</span>
+  </div>
+</section>
+
+<!-- ۱. اصل مدیریتی -->
+<section class="card full" id="roles">
+  <div class="sec-title">
+    <div class="sec-num">۱</div>
+    <h2>اصل مدیریتی مدل</h2>
+  </div>
+  <div class="quote">ما کمیسیون را بر اساس نقش، کیفیت خروجی و اندازه مشتری می‌دهیم؛ نه بر اساس فعالیت، ساعت کاری یا تعداد لید خام.</div>
+  <div class="info"><strong>منطق اقتصادی:</strong> راننده‌ها ۶۰٪ درآمد هر سفارش را می‌گیرند. یعنی شرکت فقط ۴۰٪ باقی‌مانده دارد. هزینه جذب مشتری باید از این ۴۰٪ تأمین شود. بنابراین کمیسیون‌های مارکتینگ در واقع ۱۳–۱۵٪ از سود عملیاتی شرکت هستند، نه ۳–۵٪ از درآمد کل.</div>
+</section>
+
+<!-- ۲. تفکیک نقش‌ها -->
+<section class="card full">
+  <div class="sec-title">
+    <div class="sec-num">۲</div>
+    <h2>تفکیک نقش‌ها</h2>
+  </div>
+  <div class="role-grid">
+    <div class="role-card arshia-card">
+      <div class="role-icon">📱</div>
+      <h4 style="color:var(--arshia)">آرشیا — Social Media Lead Gen</h4>
+      <p>Instagram · Facebook Ads<br>تولید محتوا، معرفی برند، جذب لید از شبکه‌های اجتماعی<br><strong>نود:</strong> West Toronto + Downtown + Midtown</p>
+    </div>
+    <div class="role-card shayan-card">
+      <div class="role-icon">🔍</div>
+      <h4 style="color:var(--shayan)">شایان — Digital B2B Lead Gen</h4>
+      <p>Google Ads · SEO · LinkedIn<br>تحقیق بازار، لیست هدف B2B، لید ارگانیک<br><strong>نود:</strong> North York · Scarborough · Mississauga و...</p>
+    </div>
+    <div class="role-card field-card">
+      <div class="role-icon">🤝</div>
+      <h4 style="color:var(--gold)">فروشنده حضوری — Field Sales</h4>
+      <p>مراجعه میدانی، جلسه حضوری، ارائه، ایجاد اعتماد</p>
+    </div>
+    <div class="role-card closer-card">
+      <div class="role-icon">✍️</div>
+      <h4 style="color:var(--purple)">تمام‌کننده قرارداد — Closer</h4>
+      <p>مذاکره نهایی، قیمت‌گذاری، بستن قرارداد، فعال‌سازی مشتری</p>
+    </div>
+  </div>
+  <div class="note"><strong>قانون طلایی:</strong> حقوق اصلی ثابت و توافقی است. کمیسیون فقط با تأیید CRM و فعال‌شدن واقعی مشتری پرداخت می‌شود.</div>
+</section>
+
+<!-- ۳. کمیسیون فروش -->
+<section class="card full" id="commission">
+  <div class="sec-title">
+    <div class="sec-num">۳</div>
+    <h2>کمیسیون فروشنده حضوری / Closer بر اساس اندازه مشتری</h2>
+  </div>
+  <p>محاسبه روی درآمد ماه اول مشتری. برای مشتریان بزرگ، Founder می‌تواند پرداخت را روی ۲–۳ ماه اول تقسیم کند.</p>
+  <table>
+    <thead>
+      <tr>
+        <th>درآمد ماهانه مشتری</th>
+        <th>کمیسیون</th>
+        <th>مبلغ واقعی پرداختی</th>
+        <th>سهم از ۴۰٪ سود شرکت</th>
+        <th>دلیل</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>تا ۱,۰۰۰ دلار</td>
+        <td class="ok">۵٪</td>
+        <td>تا ۵۰ دلار</td>
+        <td class="warn">۱۲.۵٪</td>
+        <td>مشتری کوچک سخت‌تر جذب می‌شود؛ انگیزه لازم است.</td>
+      </tr>
+      <tr>
+        <td>۱,۰۰۰ تا ۳,۰۰۰ دلار</td>
+        <td class="ok">۴.۵٪</td>
+        <td>۴۵ تا ۱۳۵ دلار</td>
+        <td class="warn">۱۱.۳٪</td>
+        <td>انگیزه بالا لازم است، مشتری هنوز متوسط است.</td>
+      </tr>
+      <tr>
+        <td>۳,۰۰۰ تا ۵,۰۰۰ دلار</td>
+        <td class="warn">۴٪</td>
+        <td>۱۲۰ تا ۲۰۰ دلار</td>
+        <td>۱۰٪</td>
+        <td>مشتری ارزشمند است، حاشیه کنترل می‌شود.</td>
+      </tr>
+      <tr>
+        <td>۵,۰۰۰ تا ۱۰,۰۰۰ دلار</td>
+        <td class="warn">۳٪</td>
+        <td>۱۵۰ تا ۳۰۰ دلار</td>
+        <td>۷.۵٪</td>
+        <td>مبلغ کمیسیون خودش با بزرگ‌شدن مشتری رشد می‌کند.</td>
+      </tr>
+      <tr>
+        <td>۱۰,۰۰۰ دلار به بالا</td>
+        <td class="purple">۲.۵٪</td>
+        <td>۲۵۰+ دلار</td>
+        <td class="ok">۶.۳٪</td>
+        <td>مشتری بزرگ سودآور است؛ کمیسیون نباید سود را ببلعد.</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="note"><strong>سقف کمیسیون ۵٪:</strong> با احتساب کمیسیون راننده ۶۰٪، هر کمیسیون فروش از نظر اقتصادی معادل ۱۲.۵٪ از سود خالص شرکت است. سقف ۵٪ از درآمد ناخالص این مدل را پایدار نگه می‌دارد.</div>
+</section>
+
+<!-- ۴. بونس لید -->
+<section class="card full" id="bonus">
+  <div class="sec-title">
+    <div class="sec-num">۴</div>
+    <h2>بونس شایان و آرشیا به عنوان Lead Generator</h2>
+  </div>
+  <p>شایان و آرشیا فروشنده نهایی نیستند. بونس ثابت بر اساس اندازه مشتری پرداخت می‌شود، فقط زمانی که CRM منبع لید را تأیید کند.</p>
+  <table>
+    <thead>
+      <tr>
+        <th>اندازه مشتری جدید</th>
+        <th>بونس Lead Generator</th>
+        <th>شرط پرداخت</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>۵۰۰ تا ۱,۰۰۰ دلار در ماه</td><td class="ok">۲۵ دلار</td><td>لید معتبر، تماس ثبت‌شده، اولین سفارش انجام‌شده</td></tr>
+      <tr><td>۱,۰۰۰ تا ۳,۰۰۰ دلار در ماه</td><td class="ok">۵۰ دلار</td><td>لید در CRM، جلسه یا قرارداد واقعی</td></tr>
+      <tr><td>۳,۰۰۰ تا ۵,۰۰۰ دلار در ماه</td><td class="warn">۱۰۰ دلار</td><td>منبع لید شفاف: SEO · Google · Instagram · LinkedIn</td></tr>
+      <tr><td>۵,۰۰۰ تا ۱۰,۰۰۰ دلار در ماه</td><td class="warn">۲۰۰ دلار</td><td>مشتری فعال، حداقل یک سفارش واقعی</td></tr>
+      <tr><td>۱۰,۰۰۰ دلار به بالا</td><td class="purple">۳۰۰ دلار</td><td>مشتری B2B تکرارشونده و قابل پیگیری</td></tr>
+    </tbody>
+  </table>
+
+  <h3>بونس عملکرد ماهانه</h3>
+  <div class="grid3">
+    <div style="padding:16px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.03);text-align:center">
+      <div style="font-size:24px;font-weight:900;color:var(--green)">۱۰۰ دلار</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px">۳ مشتری جدید فعال</div>
+    </div>
+    <div style="padding:16px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.03);text-align:center">
+      <div style="font-size:24px;font-weight:900;color:var(--gold)">۲۵۰ دلار</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px">۵ مشتری جدید فعال</div>
+    </div>
+    <div style="padding:16px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.03);text-align:center">
+      <div style="font-size:24px;font-weight:900;color:var(--blue)">۵۰۰ دلار</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px">۱۰ مشتری جدید فعال</div>
+    </div>
+  </div>
+
+  <h3>بونس مشتری استراتژیک (با تأیید Founder)</h3>
+  <table>
+    <thead><tr><th>نوع مشتری</th><th>بونس ویژه</th></tr></thead>
+    <tbody>
+      <tr><td>مشتری بالای ۱۰,۰۰۰ دلار ماهانه</td><td class="purple">۳۰۰ تا ۵۰۰ دلار</td></tr>
+      <tr><td>مشتری چند شعبه‌ای</td><td class="purple">۵۰۰ دلار</td></tr>
+      <tr><td>مشتری قراردادی / بلندمدت</td><td class="purple">۵۰۰ تا ۱,۰۰۰ دلار</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ۵. نودبندی GTA -->
+<section class="card full" id="nodes">
+  <div class="sec-title">
+    <div class="sec-num">۵</div>
+    <h2>نودبندی GTA — جلوگیری از تداخل لید</h2>
+  </div>
+  <div class="warning"><strong>مشکل اصلی:</strong> بدون تقسیم‌بندی، آرشیا و شایان ممکن است هم‌زمان با یک مشتری ارتباط بگیرند و هر دو ادعای کمیسیون کنند. راه‌حل: تقسیم جغرافیایی + قانون First Touch در CRM.</div>
+
+  <div class="node-section">
+    <div class="node-header">
+      <span class="node-owner arshia-owner">📱 آرشیا — Instagram / Facebook Ads</span>
+      <span style="font-size:13px;color:var(--muted)">Location Targeting فقط این نودها</span>
+    </div>
+    <div class="node-grid">
+      <div class="node-card arshia">
+        <div class="node-num">۱</div>
+        <h4>West Toronto</h4>
+        <div class="node-areas">Etobicoke · Rexdale · Mimico · Long Branch</div>
+        <div class="node-tags">
+          <span class="node-tag">Retail</span>
+          <span class="node-tag">Food & Bev</span>
+          <span class="node-tag">Boutique</span>
+          <span class="node-tag">Beauty</span>
+        </div>
+      </div>
+      <div class="node-card arshia">
+        <div class="node-num">۲</div>
+        <h4>Downtown + Midtown</h4>
+        <div class="node-areas">King West · Queen St · Yonge-Eglinton · Davisville</div>
+        <div class="node-tags">
+          <span class="node-tag">Ecommerce SMB</span>
+          <span class="node-tag">Health</span>
+          <span class="node-tag">Pharmacy</span>
+          <span class="node-tag">Florist</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="node-section" style="margin-top:8px">
+    <div class="node-header">
+      <span class="node-owner shayan-owner">🔍 شایان — Google Ads / SEO / LinkedIn</span>
+      <span style="font-size:13px;color:var(--muted)">نودهای ۱ و ۲ را Exclude می‌کند</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+      <div class="node-card shayan">
+        <div class="node-num">۳</div>
+        <h4>North York + Thornhill</h4>
+        <div class="node-areas">North York · Thornhill · Willowdale</div>
+        <div class="node-tags">
+          <span class="node-tag">Retail B2B</span>
+          <span class="node-tag">Medical</span>
+          <span class="node-tag">Food Dist.</span>
+        </div>
+      </div>
+      <div class="node-card shayan">
+        <div class="node-num">۴</div>
+        <h4>Scarborough + Markham</h4>
+        <div class="node-areas">Scarborough · Markham · Ajax · Pickering</div>
+        <div class="node-tags">
+          <span class="node-tag">Manufacturing</span>
+          <span class="node-tag">Asian Market</span>
+          <span class="node-tag">Warehouse</span>
+        </div>
+      </div>
+      <div class="node-card shayan">
+        <div class="node-num">۵</div>
+        <h4>Mississauga + Brampton + Vaughan</h4>
+        <div class="node-areas">Mississauga · Brampton · Vaughan · Richmond Hill</div>
+        <div class="node-tags">
+          <span class="node-tag">Logistics</span>
+          <span class="node-tag">Pharma</span>
+          <span class="node-tag">Wholesale</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="node-rule" style="margin-top:18px">
+    <h4>⚙ قوانین جلوگیری از تداخل</h4>
+    <div class="node-rule-row"><span class="dot-a">●</span><span><strong>آرشیا</strong> فقط در Instagram/Facebook برای نودهای ۱ و ۲ Location Targeting اجرا می‌کند. هیچ تبلیغی در نودهای ۳–۵ نمی‌زند.</span></div>
+    <div class="node-rule-row"><span class="dot-s">●</span><span><strong>شایان</strong> در Google Ads و LinkedIn نودهای ۱ و ۲ را Exclude می‌کند. فقط نودهای ۳–۵ را target می‌کند.</span></div>
+    <div class="node-rule-row"><span style="color:var(--gold)">●</span><span><strong>First Touch CRM:</strong> هر مشتری که اول ثبت شد مال آن نفر است. نفر دوم حتی اگر بعداً contact داشت کمیسیون نمی‌گیرد.</span></div>
+    <div class="node-rule-row"><span style="color:var(--green)">●</span><span><strong>تداخل احتمالی:</strong> اگر هر دو نفر در بازه ۷ روز همان مشتری را touch کردند و منبع مشخص نیست، بونس ۵۰/۵۰ تقسیم می‌شود.</span></div>
+  </div>
+</section>
+
+<!-- ۶. سناریوها -->
+<section class="card full" id="scenarios">
+  <div class="sec-title">
+    <div class="sec-num">۶</div>
+    <h2>تقسیم پاداش در سناریوهای مختلف</h2>
+  </div>
+  <div class="scenario-list">
+    <div class="scenario">
+      <div>
+        <div class="scenario-title">لید از SEO یا Social آمده · فروشنده جلسه رفته · Closer بسته</div>
+        <div class="pay-row">
+          <span class="pay-chip p">شایان/آرشیا: بونس لید</span>
+          <span class="pay-chip g">فروشنده: ۵۰٪ کمیسیون</span>
+          <span class="pay-chip c">Closer: ۵۰٪ کمیسیون</span>
+        </div>
+      </div>
+      <div class="scenario-total">متداول‌ترین</div>
+    </div>
+    <div class="scenario">
+      <div>
+        <div class="scenario-title">فروشنده خودش لید پیدا کرده و جلسه رفته</div>
+        <div class="pay-row">
+          <span class="pay-chip none">مارکتینگ: ندارد</span>
+          <span class="pay-chip g">فروشنده: ۷۰٪ کمیسیون</span>
+          <span class="pay-chip c">Closer: ۳۰٪ کمیسیون</span>
+        </div>
+      </div>
+      <div class="scenario-total">لید مستقل</div>
+    </div>
+    <div class="scenario">
+      <div>
+        <div class="scenario-title">Closer خودش لید آورده و بسته</div>
+        <div class="pay-row">
+          <span class="pay-chip none">مارکتینگ: ندارد</span>
+          <span class="pay-chip none">فروشنده: ندارد</span>
+          <span class="pay-chip c">Closer: ۱۰۰٪ کمیسیون</span>
+        </div>
+      </div>
+      <div class="scenario-total">Closer مستقل</div>
+    </div>
+    <div class="scenario">
+      <div>
+        <div class="scenario-title">لید از شایان آمده اما آرشیا هم nurture کرده (در نود مشترک یا CRM مشابه)</div>
+        <div class="pay-row">
+          <span class="pay-chip p">شایان + آرشیا: بونس ۵۰/۵۰</span>
+          <span class="pay-chip g">فروشنده: طبق نقش</span>
+          <span class="pay-chip c">Closer: طبق نقش</span>
+        </div>
+      </div>
+      <div class="scenario-total">Split</div>
+    </div>
+  </div>
+</section>
+
+<!-- ۷. مثال کامل -->
+<section class="card full" id="example">
+  <div class="sec-title">
+    <div class="sec-num">۷</div>
+    <h2>مثال کامل — مشتری ۸,۰۰۰ دلاری</h2>
+  </div>
+  <div class="quote">یک ecommerce در Downtown Toronto (نود ۲ — آرشیا) از طریق Instagram لید می‌شود، فروشنده جلسه می‌رود، Closer قرارداد می‌بندد.</div>
+
+  <div class="example-flow">
+    <div class="ex-step">
+      <strong>آرشیا</strong>
+      Instagram Nod 2<br>Lead ثبت در CRM
+      <div class="ex-amt">۲۰۰ دلار</div>
+    </div>
+    <div class="ex-arrow">←</div>
+    <div class="ex-step">
+      <strong>فروشنده حضوری</strong>
+      جلسه + پرزنت<br>۵۰٪ کمیسیون
+      <div class="ex-amt">۱۲۰ دلار</div>
+    </div>
+    <div class="ex-arrow">←</div>
+    <div class="ex-step">
+      <strong>Closer</strong>
+      بستن قرارداد<br>۵۰٪ کمیسیون
+      <div class="ex-amt">۱۲۰ دلار</div>
+    </div>
+    <div class="ex-arrow">←</div>
+    <div class="ex-step">
+      <strong>درآمد شرکت</strong>
+      ۴۰٪ از ۸,۰۰۰<br>بعد از راننده
+      <div class="ex-amt" style="color:var(--blue)">۳,۲۰۰ دلار</div>
+    </div>
+  </div>
+
+  <div class="ex-total-box">
+    <div>
+      <div class="label">جمع هزینه جذب این مشتری</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px">آرشیا ۲۰۰ + فروشنده ۱۲۰ + Closer ۱۲۰</div>
+    </div>
+    <div style="text-align:center">
+      <div class="amount">۴۴۰ دلار</div>
+      <div class="pct">= ۱۳.۸٪ از سود عملیاتی</div>
+    </div>
+    <div style="text-align:center">
+      <div style="font-size:22px;font-weight:900;color:var(--blue)">۲,۷۶۰ دلار</div>
+      <div class="pct">سود خالص شرکت از این مشتری</div>
+    </div>
+  </div>
+</section>
+
+<!-- ۸. قوانین -->
+<section class="card full" id="rules">
+  <div class="sec-title">
+    <div class="sec-num">۸</div>
+    <h2>قوانین کنترل سوءاستفاده</h2>
+  </div>
+  <div class="warning"><strong>هیچ بونسی برای لید خام، شماره فیک، مشتری بدون سفارش، یا جلسه بی‌کیفیت پرداخت نمی‌شود.</strong></div>
+  <ul class="rules-list">
+    <li>بونس پرداخت می‌شود فقط بعد از <strong>اولین سفارش واقعی</strong> مشتری</li>
+    <li>اگر مشتری کنسل کند یا پرداخت نکند، بونس پرداخت نمی‌شود</li>
+    <li>آرشیا نمی‌تواند در نودهای ۳–۵ تبلیغ بزند؛ شایان نمی‌تواند نودهای ۱–۲ را target کند</li>
+    <li>هرگونه اختلاف در منبع لید بر اساس <strong>تاریخ ثبت CRM</strong> تصمیم‌گیری می‌شود</li>
+  </ul>
+  <ul class="rules-list ok-list" style="margin-top:12px">
+    <li>هر لید باید با نام شرکت، شماره، و منبع در CRM ثبت شود</li>
+    <li>منبع لید مشخص باشد: Instagram · Facebook · Google · SEO · LinkedIn · Direct</li>
+    <li>برای مشتریان بزرگ، Founder حق دارد پرداخت را مرحله‌ای کند</li>
+    <li>بونس مشتری استراتژیک فقط با تأیید کتبی Founder پرداخت می‌شود</li>
+  </ul>
+</section>
+
+<!-- ۹. جمع‌بندی -->
+<section class="card full">
+  <div class="sec-title">
+    <div class="sec-num">۹</div>
+    <h2>جمع‌بندی نهایی برای تیم</h2>
+  </div>
+  <div class="quote">این مدل برای این ساخته شده که همه انگیزه داشته باشند، اما شرکت زیر فشار کمیسیون‌های سنگین نرود.</div>
+  <div class="stat-grid">
+    <div class="stat">
+      <div class="num" style="color:var(--gold)">۵٪</div>
+      <div class="lbl">سقف کمیسیون فروش</div>
+    </div>
+    <div class="stat">
+      <div class="num" style="color:var(--arshia)">۲</div>
+      <div class="lbl">نود آرشیا (West + Downtown)</div>
+    </div>
+    <div class="stat">
+      <div class="num" style="color:var(--shayan)">۳</div>
+      <div class="lbl">نود شایان (North + East + West GTA)</div>
+    </div>
+  </div>
+  <p style="margin-top:14px">شایان و آرشیا پاداش می‌گیرند چون مسیر مشتری را باز می‌کنند. فروشنده حضوری پاداش می‌گیرد چون اعتماد می‌سازد. Closer پاداش می‌گیرد چون قرارداد را نهایی می‌کند. هیچ‌کس بدون نتیجه واقعی پرداخت اضافه دریافت نمی‌کند.</p>
+</section>
+
+<div class="footer">
+  © 2026 Topping Courier Inc. — Internal Marketing Compensation Case Study<br>
+  Prepared for Founder Review &amp; Team Alignment · v2.0
+</div>
+
+</div>
+</body>
+</html>
